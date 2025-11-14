@@ -7,7 +7,7 @@ const express = require('express')          // Import del modulo Express
 const capsulesRouter = require('./routers/capsulesRouter');
 const themesRouter = require('./routers/themesRouter');
 const ordersRouter = require('./routers/ordersRouter');
-// const paymentsRouter = require('./routers/paymentsRouter');
+const paymentMethodsRouter = require('./routers/paymentMethodsRouter.js');
 
 
 /***************************
@@ -25,7 +25,7 @@ const port = 3000;                          // Definizione della porta su cui il
 app.use('/api/capsules', capsulesRouter);
 app.use('/api/themes', themesRouter);      
 app.use('/api/orders', ordersRouter);      
-// app.use('/api/payments', paymentsRouter); 
+app.use('/api/paymentMethods', paymentMethodsRouter); 
 
 
 /*********************
