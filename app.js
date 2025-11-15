@@ -25,7 +25,7 @@ const port = 3000;                          // Definizione della porta su cui il
 app.use('/api/capsules', capsulesRouter);
 app.use('/api/themes', themesRouter);      
 app.use('/api/orders', ordersRouter);      
-app.use('/api/paymentMethods', paymentMethodsRouter); 
+app.use('/api/payment-methods', paymentMethodsRouter); 
 
 
 /*********************
