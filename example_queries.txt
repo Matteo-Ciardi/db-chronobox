@@ -1,0 +1,188 @@
+Ai generated examples
+
+Example API Calls for Chronobox Application (Postman Format)
+
+Base URL: http://localhost:3000
+
+Capsules Endpoints:
+
+1. GET all capsules
+   Method: GET
+   URL: {{base_url}}/api/capsules
+   Headers: None
+   Body: None
+
+2. GET capsule by ID
+   Method: GET
+   URL: {{base_url}}/api/capsules/1
+   Headers: None
+   Body: None
+
+3. CREATE new capsule
+   Method: POST
+   URL: {{base_url}}/api/capsules
+   Headers: Content-Type: application/json
+   Body (raw JSON):
+   {
+     "name": "New Capsule",
+     "description": "Description",
+     "price": 59.99,
+     "theme_id": 1
+   }
+
+4. UPDATE capsule
+   Method: PUT
+   URL: {{base_url}}/api/capsules/1
+   Headers: Content-Type: application/json
+   Body (raw JSON):
+   {
+     "name": "Updated Capsule",
+     "description": "Updated description",
+     "price": 89.99,
+     "theme_id": 1
+   }
+
+5. DELETE capsule
+   Method: DELETE
+   URL: {{base_url}}/api/capsules/1
+   Headers: None
+   Body: None
+
+6. GET related capsules (same theme)
+   Method: GET
+   URL: {{base_url}}/api/capsules/1/related
+   Headers: None
+   Body: None
+
+Themes Endpoints:
+
+7. GET all themes
+   Method: GET
+   URL: {{base_url}}/api/themes
+   Headers: None
+   Body: None
+
+8. GET theme by ID
+   Method: GET
+   URL: {{base_url}}/api/themes/1
+   Headers: None
+   Body: None
+
+9. CREATE new theme
+   Method: POST
+   URL: {{base_url}}/api/themes
+   Headers: Content-Type: application/json
+   Body (raw JSON):
+   {
+     "name": "New Theme",
+     "description": "Description"
+   }
+
+10. UPDATE theme
+    Method: PUT
+    URL: {{base_url}}/api/themes/1
+    Headers: Content-Type: application/json
+    Body (raw JSON):
+    {
+      "name": "Updated Theme",
+      "description": "Updated description"
+    }
+
+11. DELETE theme
+    Method: DELETE
+    URL: {{base_url}}/api/themes/1
+    Headers: None
+    Body: None
+
+Orders Endpoints:
+
+12. GET all orders
+    Method: GET
+    URL: {{base_url}}/api/orders
+    Headers: None
+    Body: None
+
+13. GET order by ID
+    Method: GET
+    URL: {{base_url}}/api/orders/1
+    Headers: None
+    Body: None
+
+14. CREATE new order
+    Method: POST
+    URL: {{base_url}}/api/orders
+    Headers: Content-Type: application/json
+    Body (raw JSON):
+    {
+      "method_id": 1,
+      "session_id": "session123",
+      "customer_name": "John Doe",
+      "customer_email": "john@example.com",
+      "shipping_address": "123 Main St",
+      "billing_address": "123 Main St",
+      "total": 99.99
+    }
+
+15. UPDATE order
+    Method: PUT
+    URL: {{base_url}}/api/orders/1
+    Headers: Content-Type: application/json
+    Body (raw JSON):
+    {
+      "method_id": 1,
+      "session_id": "session123",
+      "customer_name": "John Doe",
+      "customer_email": "john@example.com",
+      "shipping_address": "123 Main St",
+      "billing_address": "123 Main St",
+      "total": 99.99,
+      "status": "completed"
+    }
+
+16. DELETE order
+    Method: DELETE
+    URL: {{base_url}}/api/orders/1
+    Headers: None
+    Body: None
+
+Payment Methods Endpoints:
+
+17. GET all payment methods
+    Method: GET
+    URL: {{base_url}}/api/payment-methods
+    Headers: None
+    Body: None
+
+18. GET payment method by ID
+    Method: GET
+    URL: {{base_url}}/api/payment-methods/1
+    Headers: None
+    Body: None
+
+19. CREATE new payment method
+    Method: POST
+    URL: {{base_url}}/api/payment-methods
+    Headers: Content-Type: application/json
+    Body (raw JSON):
+    {
+      "name": "New Method",
+      "type": "card"
+    }
+
+20. UPDATE payment method
+    Method: PUT
+    URL: {{base_url}}/api/payment-methods/1
+    Headers: Content-Type: application/json
+    Body (raw JSON):
+    {
+      "name": "Updated Method",
+      "type": "online"
+    }
+
+21. DELETE payment method
+    Method: DELETE
+    URL: {{base_url}}/api/payment-methods/1
+    Headers: None
+    Body: None
+
+Note: Set {{base_url}} as a variable in Postman to http://localhost:3000
