@@ -29,8 +29,6 @@ Capsules Endpoints:
       "price": 59.99,
       "discounted_price": null,
       "color": "Blue",
-      "shipping_price": 5.99,
-      "category": "Time Capsule",
       "theme_id": 1
     }
 
@@ -45,8 +43,6 @@ Capsules Endpoints:
       "price": 89.99,
       "discounted_price": 79.99,
       "color": "Red",
-      "shipping_price": 7.99,
-      "category": "Special Capsule",
       "theme_id": 1
     }
 
