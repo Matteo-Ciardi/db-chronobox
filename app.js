@@ -21,6 +21,9 @@ const port = 3000;                          // Definizione della porta su cui il
     MIDDLEWARE
 ****************/
 
+// Middleware per parsing JSON
+app.use(express.json());
+
 // Registrazione dei router
 app.use('/api/capsules', capsulesRouter);
 app.use('/api/themes', themesRouter);      
