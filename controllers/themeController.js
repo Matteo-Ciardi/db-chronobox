@@ -4,13 +4,13 @@
 const connection = require('../data/connection');
 
 /********************
-    FUNZIONI ROTTE
+    CONTROLLER FUNZIONI
 *********************/
 
-// index - Mostra tutte i temi
+// index - Mostra tutti i temi
 async function index(req, res) {
     try {
-        const [rows] = await connection.query('SELECT * FROM themes');
+        const [rows] = await connection.query('SELECT * FROM theme');
         res.json(rows);
     } catch (error) {
         res.status(500).json({ error: error.message });
@@ -20,11 +20,17 @@ async function index(req, res) {
 // show - Mostra un tema specifico
 async function show(req, res) {
     try {
-        const [rows] = await connection.query('SELECT * FROM themes WHERE id = ?', [req.params.id]);
+        const [rows] = await connection.query(
+            'SELECT * FROM theme WHERE id = ?',
+            [req.params.id]
+        );
+
         if (rows.length === 0) {
             return res.status(404).json({ error: 'Theme not found' });
         }
+
         res.json(rows[0]);
+
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
@@ -33,9 +39,22 @@ async function show(req, res) {
 // store - Crea un nuovo tema
 async function store(req, res) {
     try {
-        const { name, description } = req.body;
-        const [result] = await connection.query('INSERT INTO themes (name, description) VALUES (?, ?)', [name, description]);
-        res.status(201).json({ id: result.insertId, message: 'Theme created successfully' });
+        const { name, description, image } = req.body;
+
+        if (!name) {
+            return res.status(400).json({ error: 'Name is required' });
+        }
+
+        const [result] = await connection.query(
+            'INSERT INTO theme (name, description, image) VALUES (?, ?, ?)',
+            [name, description, image]
+        );
+
+        res.status(201).json({
+            id: result.insertId,
+            message: 'Theme created successfully'
+        });
+
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
@@ -44,12 +63,19 @@ async function store(req, res) {
 // update - Aggiorna un tema
 async function update(req, res) {
     try {
-        const { name, description } = req.body;
-        const [result] = await connection.query('UPDATE themes SET name = ?, description = ? WHERE id = ?', [name, description, req.params.id]);
+        const { name, description, image } = req.body;
+
+        const [result] = await connection.query(
+            'UPDATE theme SET name = ?, description = ?, image = ? WHERE id = ?',
+            [name, description, image, req.params.id]
+        );
+
         if (result.affectedRows === 0) {
             return res.status(404).json({ error: 'Theme not found' });
         }
+
         res.json({ message: 'Theme updated successfully' });
+
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
@@ -58,11 +84,17 @@ async function update(req, res) {
 // destroy - Elimina un tema
 async function destroy(req, res) {
     try {
-        const [result] = await connection.query('DELETE FROM themes WHERE id = ?', [req.params.id]);
+        const [result] = await connection.query(
+            'DELETE FROM theme WHERE id = ?',
+            [req.params.id]
+        );
+
         if (result.affectedRows === 0) {
             return res.status(404).json({ error: 'Theme not found' });
         }
+
         res.json({ message: 'Theme deleted successfully' });
+
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
@@ -72,4 +104,4 @@ async function destroy(req, res) {
 /************
     EXPORT
 ************/
-module.exports = { index, show, store, update, destroy };  // Export funzioni controller
+module.exports = { index, show, store, update, destroy };
