@@ -20,9 +20,8 @@ const port = 3000;                          // Definizione della porta su cui il
 /***************
     MIDDLEWARE
 ****************/
-
-// Middleware per parsing JSON
-app.use(express.json());
+app.use(express.json());                    // Registrazione middleware per parsing JSON
+app.use(express.static('public'));          // Registrazione middleware per servire i file statici
 
 // Registrazione dei router
 app.use('/api/capsules', capsulesRouter);
