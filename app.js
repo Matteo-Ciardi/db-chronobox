@@ -8,6 +8,8 @@ const capsulesRouter = require('./routers/capsulesRouter');
 const themesRouter = require('./routers/themesRouter');
 const ordersRouter = require('./routers/ordersRouter');
 const paymentMethodsRouter = require('./routers/paymentMethodsRouter.js');
+const capsuleOrdersRouter = require('./routers/capsuleOrdersRouter.js');
+const capsuleOrderImagesRouter = require('./routers/capsuleOrderImagesRouter.js');
 
 
 /***************************
@@ -29,6 +31,8 @@ app.use('/api/capsules', capsulesRouter);
 app.use('/api/themes', themesRouter);      
 app.use('/api/orders', ordersRouter);      
 app.use('/api/payment-methods', paymentMethodsRouter); 
+app.use('/api/capsule-orders', capsuleOrdersRouter);
+app.use('/api/capsule-order-images', capsuleOrderImagesRouter);
 
 
 /*********************
