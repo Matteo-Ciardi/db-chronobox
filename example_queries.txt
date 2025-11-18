@@ -4,6 +4,7 @@ Example API Calls for Chronobox Application (Postman Format)
 
 Base URL: http://localhost:3000
 
+-------------------------------------------------------------------------------------------------------------------------------
 Capsules Endpoints:
 
 1. GET all capsules
@@ -24,79 +25,49 @@ Capsules Endpoints:
    Headers: Content-Type: application/json
     Body (raw JSON):
     {
-      "name": "New Capsule",
-      "description": "Description",
-      "price": 59.99,
-      "discounted_price": null,
-      "color": "Blue",
-      "theme_id": 1
+      "name": "nuova-capsula",
+      "img": "classic-small.jpg",
+      "description": "descrizione-nuova-capsula",
+      "price": "19.90",
+      "discounted_price": "17.90",
+      "dimension": "5x5x5 cm",
+      "material": "Plastic",
+      "weight": "50g",
+      "capacity": "50ml",
+      "resistance": "Low",
+      "worrenty": "1y",
+      "color": "Red",
+      "theme": "Classic"
     }
 
 4. UPDATE capsule
    Method: PUT
-   URL: {{base_url}}/api/capsules/1
+   URL: {{base_url}}/api/capsules/41
    Headers: Content-Type: application/json
     Body (raw JSON):
-    {
-      "name": "Updated Capsule",
-      "description": "Updated description",
-      "price": 89.99,
-      "discounted_price": 79.99,
+      {
+      "name": "nuova-capsula-AGGIORNATA",
+      "img": "classic-small.jpg",
+      "description": "descrizione-nuova-capsula-AGGIORNATA",
+      "price": "19.90",
+      "discounted_price": "17.90",
+      "dimension": "5x5x5 cm",
+      "material": "Plastic",
+      "weight": "50g",
+      "capacity": "50ml",
+      "resistance": "Low",
+      "worrenty": "1y",
       "color": "Red",
-      "theme_id": 1
-    }
+      "theme": "Classic"
+  }
 
 5. DELETE capsule
    Method: DELETE
-   URL: {{base_url}}/api/capsules/1
+   URL: {{base_url}}/api/capsules/41
    Headers: None
    Body: None
 
-6. GET related capsules (same theme)
-   Method: GET
-   URL: {{base_url}}/api/capsules/1/related
-   Headers: None
-   Body: None
-
-Themes Endpoints:
-
-7. GET all themes
-   Method: GET
-   URL: {{base_url}}/api/themes
-   Headers: None
-   Body: None
-
-8. GET theme by ID
-   Method: GET
-   URL: {{base_url}}/api/themes/1
-   Headers: None
-   Body: None
-
-9. CREATE new theme
-   Method: POST
-   URL: {{base_url}}/api/themes
-   Headers: Content-Type: application/json
-   Body (raw JSON):
-   {
-     "name": "New Theme",
-     "description": "Description"
-   }
-
-10. UPDATE theme
-    Method: PUT
-    URL: {{base_url}}/api/themes/1
-    Headers: Content-Type: application/json
-    Body (raw JSON):
-    {
-      "name": "Updated Theme",
-      "description": "Updated description"
-    }
-
-11. DELETE theme
-    Method: DELETE
-    URL: {{base_url}}/api/themes/1
-    Headers: None
-    Body: None
+-------------------------------------------------------------------------------------------------------------------------------
 
 Orders Endpoints:
 
@@ -148,6 +119,8 @@ Orders Endpoints:
     URL: {{base_url}}/api/orders/1
     Headers: None
     Body: None
+
+-------------------------------------------------------------------------------------------------------------------------------
 
 Payment Methods Endpoints:
 
