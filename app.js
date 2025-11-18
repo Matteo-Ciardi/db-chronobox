@@ -1,18 +1,19 @@
 /************
     IMPORT
 ************/
-const express = require('express')          // Import del modulo Express
-const cors = require('cors');               // Import del middleware cors
-const imagePath = require('./middlewares/imagePath');        // Import del middleware imagePath
+const express = require('express')                          // Import del modulo Express
+const cors = require('cors');                               // Import del middleware cors
+const imagePath = require('./middlewares/imagePath');       // Import del middleware imagePath
 
 
 // Import dei router
 const capsulesRouter = require('./routers/capsulesRouter');
-const themesRouter = require('./routers/themesRouter');
 const ordersRouter = require('./routers/ordersRouter');
 const paymentMethodsRouter = require('./routers/paymentMethodsRouter.js');
 const capsuleOrdersRouter = require('./routers/capsuleOrdersRouter.js');
 const capsuleOrderImagesRouter = require('./routers/capsuleOrderImagesRouter.js');
+const capsuleMostPopularRouter = require('./routers/capsuleMostPopularRouter.js');
+const capsuleNewArrivalsRouter = require('./routers/capsuleNewArrivalsRouter.js');
 
 
 /***************************
@@ -32,11 +33,12 @@ app.use(express.static('public'));                  // Registrazione middleware 
 
 // Registrazione dei router
 app.use('/api/capsules', capsulesRouter);
-app.use('/api/themes', themesRouter);      
 app.use('/api/orders', ordersRouter);      
 app.use('/api/payment-methods', paymentMethodsRouter); 
 app.use('/api/capsule-orders', capsuleOrdersRouter);
 app.use('/api/capsule-order-images', capsuleOrderImagesRouter);
+app.use('/api/capsule-most-popular', capsuleMostPopularRouter);
+app.use('/api/capsule-new-arrivals', capsuleNewArrivalsRouter);
 
 
 /*********************
