@@ -48,3 +48,17 @@ Lo schema E-R utilizzato dal backend è il seguente:
 La parte frontend è disponibile nella repository dedicata:  
 https://github.com/Matteo-Ciardi/fe-chronobox.git
 
+<h2 align="center">  Chronobox – Documentazione API </h2>
+
+## Crud - Capsules
+https://documenter.getpostman.com/view/48540573/2sB3WwrxkH
+
+## Crud - Capsule New Arrivals
+https://documenter.getpostman.com/view/48540573/2sB3Wwrxpf
+
+## Crud - Capsules Most Popular
+
+## Crud - Orders
+
+## Crud - Payment Methods
+https://documenter.getpostman.com/view/48540573/2sB3Wwrxu9
