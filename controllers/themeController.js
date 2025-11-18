@@ -11,7 +11,17 @@ const connection = require('../data/connection');
 async function index(req, res) {
     try {
         const [rows] = await connection.query('SELECT * FROM theme');
-        res.json(rows);
+
+        // Aggiungo il percorso completo dell'immagine a ciascun tema
+        const themesWithFullPath = rows.map(theme => {
+            return {
+                ...theme,
+                image: req.imagePath + theme.image
+            };
+        });
+
+        res.json(themesWithFullPath);
+
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
@@ -29,12 +39,18 @@ async function show(req, res) {
             return res.status(404).json({ error: 'Theme not found' });
         }
 
-        res.json(rows[0]);
+        const theme = rows[0];
+
+        // Aggiungo il percorso completo all'immagine
+        theme.image = req.imagePath + theme.image;
+
+        res.json(theme);
 
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
 }
+
 
 // store - Crea un nuovo tema
 async function store(req, res) {
