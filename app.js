@@ -3,6 +3,8 @@
 ************/
 const express = require('express')          // Import del modulo Express
 const cors = require('cors');               // Import del middleware cors
+const imagePath = require('./middlewares/imagePath');        // Import del middleware imagePath
+
 
 // Import dei router
 const capsulesRouter = require('./routers/capsulesRouter');
@@ -23,6 +25,7 @@ const port = 3000;                          // Definizione della porta su cui il
 ****************/
 app.use(cors({ origin: process.env.FE_APP }))       // Registrazione middleware cors per gestire le richieste tra origini diverse
 app.use(express.json());                            // Registrazione middleware per parsing JSON
+app.use(imagePath);                                 // Registrazione middleware per gestire dinamicamente il path delle immagini
 app.use(express.static('public'));                  // Registrazione middleware per servire i file statici
 
 // Registrazione dei router
