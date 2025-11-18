@@ -1,8 +1,8 @@
 /************
     IMPORT
 ************/
-const express = require('express')                                      // Import Express
-const capsuleMostPopularController = require('../controllers/capsuleMostPopularController')   // Import Controller delle capsule
+const express = require('express')                                                            // Import Express
+const capsuleMostPopularController = require('../controllers/capsuleMostPopularController')   // Import Controller delle capsule più popolari
 
 /*************
     ROUTER
