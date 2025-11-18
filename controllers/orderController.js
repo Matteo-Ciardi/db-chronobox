@@ -3,7 +3,6 @@
  ************/
 const connection = require('../data/connection');
 
-
 /********************
     CONTROLLER FUNZIONI
 *********************/
@@ -47,30 +46,30 @@ async function store(req, res) {
             customer_email,
             shipping_address,
             billing_address,
-            total,
-            shipping_price
+            total_amount,
+            status // optional
         } = req.body;
 
         // Required fields validation
-        if (!method_id || !customer_name || !customer_email || !shipping_address || !total || !shipping_price) {
+        if (!customer_name || !customer_email || !shipping_address || total_amount == null) {
             return res.status(400).json({
-                error: 'Missing required fields (method_id, customer_name, customer_email, shipping_address, total, shipping_price)'
+                error: 'Missing required fields (customer_name, customer_email, shipping_address, total_amount)'
             });
         }
 
         const [result] = await connection.query(
             `INSERT INTO orders 
-                (method_id, session_id, customer_name, customer_email, shipping_address, billing_address, total, shipping_price)
+                (method_id, session_id, customer_name, customer_email, shipping_address, billing_address, total_amount, status)
              VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
             [
-                method_id,
-                session_id,
+                method_id || null,
+                session_id || null,
                 customer_name,
                 customer_email,
                 shipping_address,
-                billing_address,
-                total,
-                shipping_price
+                billing_address || null,
+                total_amount,
+                status || 'pending'
             ]
         );
 
@@ -94,25 +93,23 @@ async function update(req, res) {
             customer_email,
             shipping_address,
             billing_address,
-            total,
-            shipping_price,
+            total_amount,
             status
         } = req.body;
 
         const [result] = await connection.query(
             `UPDATE orders 
              SET method_id = ?, session_id = ?, customer_name = ?, customer_email = ?, 
-                 shipping_address = ?, billing_address = ?, total = ?, shipping_price = ?, status = ?
+                 shipping_address = ?, billing_address = ?, total_amount = ?, status = ?
              WHERE id = ?`,
             [
-                method_id,
-                session_id,
+                method_id || null,
+                session_id || null,
                 customer_name,
                 customer_email,
                 shipping_address,
-                billing_address,
-                total,
-                shipping_price,
+                billing_address || null,
+                total_amount,
                 status,
                 req.params.id
             ]
@@ -147,7 +144,6 @@ async function destroy(req, res) {
         res.status(500).json({ error: error.message });
     }
 }
-
 
 /************
     EXPORT
