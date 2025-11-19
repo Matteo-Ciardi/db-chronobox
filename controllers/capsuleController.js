@@ -73,7 +73,7 @@ async function store(req, res) {
         // Basic validation
         if (!name || !img || !description || !price || !discounted_price || !dimension || !material || !weight || !capacity || !resistance || !worrenty || !color || !theme) {
              return res.status(400).json({ error: 'Missing required fields' });
-         }
+        }
 
         const [result] = await connection.query(
             `INSERT INTO capsule (name, img, description, price, discounted_price, dimension, material, weight, capacity, resistance, worrenty, color, theme)

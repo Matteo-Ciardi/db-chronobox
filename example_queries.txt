@@ -1,27 +1,17 @@
-Ai generated examples
-
-Example API Calls for Chronobox Application (Postman Format)
-
 Base URL: http://localhost:3000
 
 -------------------------------------------------------------------------------------------------------------------------------
-Capsules Endpoints:
+CAPSULES:
 
-1. GET all capsules
-   Method: GET
-   URL: {{base_url}}/api/capsules
-   Headers: None
-   Body: None
+1. index - Mostra tutte le capsula
+   GET --> http://localhost:3000/api/capsules
 
-2. GET capsule by ID
-   Method: GET
-   URL: {{base_url}}/api/capsules/1
-   Headers: None
-   Body: None
+2. show - Mostra una capsula specifica
+   http://localhost:3000/api/capsules/3
 
-3. CREATE new capsule
-   Method: POST
-   URL: {{base_url}}/api/capsules
+3. store - Crea una nuova capsula
+   POST http://localhost:3000/api/capsules
+
    Headers: Content-Type: application/json
     Body (raw JSON):
     {
