@@ -11,7 +11,7 @@ const router = express.Router() // Inizializzazione router express
 
 // Definizione delle rotte CRUD
 router.get('/', capsuleController.index);                       // Mostra tutte le capsule
-router.get('/:id', capsuleController.show);                     // Mostra una capsula specifica
+router.get('/:slug', capsuleController.show);                   // Mostra una capsula specifica
 router.post('/', capsuleController.store);                      // Crea una nuova capsula
 router.put('/:id', capsuleController.update);                   // Aggiorna una capsula
 router.delete('/:id', capsuleController.destroy);               // Elimina una capsula

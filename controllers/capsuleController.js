@@ -8,20 +8,22 @@ const connection = require('../data/connection');
     CONTROLLER FUNZIONI
 **************************/
 
+//--------------------------------------------------- INDEX ----------------------------------------------------
 // Index - Mostra tutte le capsule
 async function index(req, res) {
 
     // Definizione query
     const query_capsules = 
-    `SELECT *
-     FROM capsule`;
+    ` SELECT *
+      FROM capsule
+    `;
 
     try {
 
-        // Esecuzione query
+        // Esecuzione query: recupero tutte le capsule dal database
         const [rows] = await connection.query(query_capsules);
 
-        // Aggiungo il percorso completo dell'immagine a ciascuna capsula
+        // Per ogni capsula aggiungo il percorso completo all’immagine
         const capsulesWithFullPathImgs = rows.map(capsule => {
             return {
                 ...capsule,
@@ -29,24 +31,34 @@ async function index(req, res) {
             };
         });
 
+        // Restituisco tutte le capsule in formato JSON
         res.json(capsulesWithFullPathImgs);
         
-    } catch (error) {
+    } 
+    
+    // Gestione errore server
+    catch (error) {
+        // Restituisco errore server
         res.status(500).json({ error: error.message });
     }
 }
+
+//--------------------------------------------------- SHOW ----------------------------------------------------
 
 // Show - Mostra una capsula specifica
 async function show(req, res) {
 
     // Definizione query
     const query_capsule =
-        `SELECT * FROM capsule WHERE id = ?`;
+        ` SELECT * 
+          FROM capsule 
+          WHERE slug = ?
+        `;
 
     try {
 
         // Esecuzione query
-        const [rows] = await connection.query(query_capsule, [req.params.id]);
+        const [rows] = await connection.query(query_capsule, [req.params.slug]);
 
         if (rows.length === 0) {
             return res.status(404).json({ error: 'Capsule not found' });
@@ -58,35 +70,71 @@ async function show(req, res) {
             img: req.imagePath + rows[0].img
         };
 
+        // Restituisco la capsula in formato JSON
         res.json(capsuleWithFullPathImg);
+    }
 
-    } catch (error) {
+    // Gestione errore server
+    catch (error) {
         res.status(500).json({ error: error.message });
     }
 }
 
-// store - Crea una nuova capsula
-async function store(req, res) {
-    try {
-        const { name, img, description, price, discounted_price, dimension, material, weight, capacity, resistance, worrenty, color, theme} = req.body;
+//--------------------------------------------------- STORE ----------------------------------------------------
 
-        // Basic validation
-        if (!name || !img || !description || !price || !discounted_price || !dimension || !material || !weight || !capacity || !resistance || !worrenty || !color || !theme) {
+// Store - Crea una nuova capsula
+async function store(req, res) {
+
+    // Definizione query per creare una capsula
+    const query_store_capsule =
+        ` INSERT INTO capsule (name, img, description, price, discounted_price, dimension, material, weight, capacity, resistance, warrenty, color, theme)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `;
+
+    try {
+
+        // Recupero dati dal body della richiesta (tramite destructuring)
+        const { name, img, description, price, discounted_price, dimension, material, weight, capacity, resistance, warrenty, color, theme} = req.body;
+
+        // Validazione dei campi richiesti
+        if (!name || !img || !description || !price || !discounted_price || !dimension || !material || !weight || !capacity || !resistance || !warrenty || !color || !theme) {
              return res.status(400).json({ error: 'Missing required fields' });
          }
 
+        // Esecuzione query passando i valori recuperati dal body
         const [result] = await connection.query(
-            `INSERT INTO capsule (name, img, description, price, discounted_price, dimension, material, weight, capacity, resistance, worrenty, color, theme)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-            [name, img, description, price, discounted_price, dimension, material, weight, capacity, resistance, worrenty, color, theme]
+            query_store_capsule,
+            [name, img, description, price, discounted_price, dimension, material, weight, capacity, resistance, warrenty, color, theme]
         );
 
-        res.status(201).json({
-            id: result.insertId,
-            message: 'Capsule created successfully'
-        });
+        // Recupero id capsula creata
+        const newId = result.insertId;
 
-    } catch (error) {
+        // Definizione query per recuperare lo slug generato da MySQL
+        const query_slug =
+            ` SELECT slug 
+              FROM capsule 
+              WHERE id = ?
+            `;
+
+        // Esecuzione query: recupero slug
+        const [slugResult] = await connection.query(query_slug, [newId]);
+
+        // Estraggo lo slug dalla risposta
+        const slug = slugResult[0]?.slug;
+
+        // Risposta in caso di successo
+        res.status(201).json(
+            {
+                id: result.insertId,
+                slug: slug,
+                message: 'Capsule created successfully'
+            }
+        );
+    } 
+    
+    // Gestione errore
+    catch (error) {
         res.status(500).json({ error: error.message });
     }
 }
@@ -95,13 +143,13 @@ async function store(req, res) {
 // update - Aggiorna una capsula
 async function update(req, res) {
     try {
-        const { name, img, description, price, discounted_price, dimension, material, weight, capacity, resistance, worrenty, color, theme } = req.body;
+        const { name, img, description, price, discounted_price, dimension, material, weight, capacity, resistance, warrenty, color, theme } = req.body;
 
         const [result] = await connection.query(
             `UPDATE capsule
-            SET name = ?, img = ?, description = ?, price = ?, discounted_price = ?, dimension = ?, material = ?, weight = ?, capacity = ?, resistance = ?, worrenty = ?, color = ?, theme = ?
+            SET name = ?, img = ?, description = ?, price = ?, discounted_price = ?, dimension = ?, material = ?, weight = ?, capacity = ?, resistance = ?, warrenty = ?, color = ?, theme = ?
              WHERE id = ?`,
-            [name, img, description, price, discounted_price, dimension, material, weight, capacity, resistance, worrenty, color, theme, req.params.id]
+            [name, img, description, price, discounted_price, dimension, material, weight, capacity, resistance, warrenty, color, theme, req.params.id]
         );
 
         if (result.affectedRows === 0) {
