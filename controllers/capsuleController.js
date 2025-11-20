@@ -8,20 +8,22 @@ const connection = require('../data/connection');
     CONTROLLER FUNZIONI
 **************************/
 
+//--------------------------------------------------- INDEX ----------------------------------------------------
 // Index - Mostra tutte le capsule
 async function index(req, res) {
 
     // Definizione query
     const query_capsules = 
-    `SELECT *
-     FROM capsule`;
+    ` SELECT *
+      FROM capsule
+    `;
 
     try {
 
-        // Esecuzione query
+        // Esecuzione query: recupero tutte le capsule dal database
         const [rows] = await connection.query(query_capsules);
 
-        // Aggiungo il percorso completo dell'immagine a ciascuna capsula
+        // Per ogni capsula aggiungo il percorso completo all’immagine
         const capsulesWithFullPathImgs = rows.map(capsule => {
             return {
                 ...capsule,
@@ -29,24 +31,34 @@ async function index(req, res) {
             };
         });
 
-        res.json(capsulesWithFullPathImgs);
-        
-    } catch (error) {
+        // Restituisco tutte le capsule in formato JSON
+        res.json(capsulesWithFullPathImgs); 
+    } 
+    
+    // Gestione errore
+    catch (error) {
         res.status(500).json({ error: error.message });
     }
 }
+
+//--------------------------------------------------- SHOW ----------------------------------------------------
 
 // Show - Mostra una capsula specifica
 async function show(req, res) {
 
     // Definizione query
     const query_capsule =
-        `SELECT * FROM capsule WHERE id = ?`;
+        ` SELECT * 
+          FROM capsule 
+          WHERE slug = ?
+        `;
 
     try {
+        // Recupero slug dall'URL
+        const slug = req.params.slug;
 
         // Esecuzione query
-        const [rows] = await connection.query(query_capsule, [req.params.id]);
+        const [rows] = await connection.query(query_capsule, [slug]);
 
         if (rows.length === 0) {
             return res.status(404).json({ error: 'Capsule not found' });
@@ -58,79 +70,185 @@ async function show(req, res) {
             img: req.imagePath + rows[0].img
         };
 
+        // Restituisco la capsula in formato JSON
         res.json(capsuleWithFullPathImg);
+    }
 
-    } catch (error) {
+    // Gestione errore server
+    catch (error) {
         res.status(500).json({ error: error.message });
     }
 }
 
-// store - Crea una nuova capsula
-async function store(req, res) {
-    try {
-        const { name, img, description, price, discounted_price, dimension, material, weight, capacity, resistance, worrenty, color, theme} = req.body;
+//--------------------------------------------------- STORE ----------------------------------------------------
 
-        // Basic validation
-        if (!name || !img || !description || !price || !discounted_price || !dimension || !material || !weight || !capacity || !resistance || !worrenty || !color || !theme) {
+// Store - Crea una nuova capsula
+async function store(req, res) {
+
+    // Definizione query per creare una capsula
+    const query_store_capsule =
+        ` INSERT INTO capsule (name, img, description, price, discounted_price, dimension, material, weight, capacity, resistance, warrenty, color, theme)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `;
+
+    try {
+
+        // Recupero dati dal body della richiesta (tramite destructuring)
+        const { name, img, description, price, discounted_price, dimension, material, weight, capacity, resistance, warrenty, color, theme} = req.body;
+
+        // Validazione dei campi richiesti
+        if (!name || !img || !description || !price || !discounted_price || !dimension || !material || !weight || !capacity || !resistance || !warrenty || !color || !theme) {
              return res.status(400).json({ error: 'Missing required fields' });
          }
 
+        // Esecuzione query passando i valori recuperati dal body
         const [result] = await connection.query(
-            `INSERT INTO capsule (name, img, description, price, discounted_price, dimension, material, weight, capacity, resistance, worrenty, color, theme)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-            [name, img, description, price, discounted_price, dimension, material, weight, capacity, resistance, worrenty, color, theme]
+            query_store_capsule,
+            [name, img, description, price, discounted_price, dimension, material, weight, capacity, resistance, warrenty, color, theme]
         );
 
-        res.status(201).json({
-            id: result.insertId,
-            message: 'Capsule created successfully'
-        });
+        // Recupero id capsula creata
+        const idCeatedCapsule = result.insertId;
 
-    } catch (error) {
+        // Definizione query per recuperare lo slug generato da MySQL
+        const query_slug =
+            ` SELECT slug 
+              FROM capsule 
+              WHERE id = ?
+            `;
+
+        // Esecuzione query: recupero slug
+        const [slugResult] = await connection.query(query_slug, [idCeatedCapsule]);
+
+        // Recuper slug dalla risposta
+        const slugCreatedCapsule = slugResult[0]?.slug;
+
+        // Risposta in caso di successo
+        res.status(201).json(
+            {
+                id: idCeatedCapsule,
+                slug: slugCreatedCapsule,
+                message: 'Capsule created successfully'
+            }
+        );
+    } 
+    
+    // Gestione errore
+    catch (error) {
         res.status(500).json({ error: error.message });
     }
 }
 
+//--------------------------------------------------- UPDATE ----------------------------------------------------
 
 // update - Aggiorna una capsula
 async function update(req, res) {
-    try {
-        const { name, img, description, price, discounted_price, dimension, material, weight, capacity, resistance, worrenty, color, theme } = req.body;
 
+    const id = parseInt(req.params.id); // Recupero id dall'URL
+    const { name, img, description, price, discounted_price, dimension, material, weight, capacity, resistance, warrenty, color, theme } = req.body;  // Recupero dati dal body della richiesta (tramite destructuring)
+
+    // Definizione query per aggiornate una capsula
+    const query_update_capsule =
+        ` UPDATE capsule
+          SET name = ?, img = ?, description = ?, price = ?, discounted_price = ?, dimension = ?, material = ?, weight = ?, capacity = ?, resistance = ?, warrenty = ?, color = ?, theme = ?
+          WHERE id = ?
+        `;
+
+    try {
+        // Esecuzione query: aggiorna capsula
         const [result] = await connection.query(
-            `UPDATE capsule
-            SET name = ?, img = ?, description = ?, price = ?, discounted_price = ?, dimension = ?, material = ?, weight = ?, capacity = ?, resistance = ?, worrenty = ?, color = ?, theme = ?
-             WHERE id = ?`,
-            [name, img, description, price, discounted_price, dimension, material, weight, capacity, resistance, worrenty, color, theme, req.params.id]
+            query_update_capsule,
+            [name, img, description, price, discounted_price, dimension, material, weight, capacity, resistance, warrenty, color, theme, id]
         );
 
+        // Controllo se nessuna riga è stata modificata -> l'ID non esiste
         if (result.affectedRows === 0) {
             return res.status(404).json({ error: 'Capsule not found' });
         }
+        
+        // Definizione query per recuperare lo slug aggiornato da MySQL
+        const query_slug =
+            ` SELECT slug 
+              FROM capsule 
+              WHERE id = ?
+            `;
 
-        res.json({ message: 'Capsule updated successfully' });
+        // Esecuzione query: recupero slug
+        const [slugResult] = await connection.query(query_slug, [id]);
 
-    } catch (error) {
+        // Recuper slug dalla risposta
+        const slugUpdatedCapsule = slugResult[0]?.slug;
+
+        // Risposta in caso di successo
+        res.status(200).json(
+            {
+                id: id,
+                slug: slugUpdatedCapsule,
+                message: 'Capsule updated successfully'
+            }
+        );
+    }
+
+    // Gestione errore
+    catch (error) {
         res.status(500).json({ error: error.message });
     }
 }
 
+//--------------------------------------------------- Destroy ----------------------------------------------------
 
-// destroy - Elimina una capsula
+// Delete - Elimina una capsula
 async function destroy(req, res) {
-    try {
-        const [result] = await connection.query(
-            'DELETE FROM capsule WHERE id = ?',
-            [req.params.id]
-        );
 
-        if (result.affectedRows === 0) {
+    const id = parseInt(req.params.id);  // Recupero id dall'URL
+
+    // Definizione query per recuperare lo slug (prima di eliminare la capsula)
+    const query_get_slug = 
+    `
+        SELECT slug 
+        FROM capsule 
+        WHERE id = ?
+    `;
+
+    // Definizione query per eliminare una capsula
+    const query_delete_capsule =
+        ` DELETE 
+          FROM capsule 
+          WHERE id = ?
+        `;
+
+    try {
+
+        // Esecuzione query: recupero slug
+        const [rows] = await connection.query(query_get_slug, [id]);
+
+        // Se la capsula non esiste → 404
+        if (rows.length === 0) {
             return res.status(404).json({ error: 'Capsule not found' });
         }
 
-        res.json({ message: 'Capsule deleted successfully' });
+        const slugDeletedCapsule = rows[0].slug; // salvo lo slug
 
-    } catch (error) {
+        // Commento
+        if (rows.length === 0) {
+            return res.status(404).json({ error: 'Capsule not found' });
+        }
+
+        // Esecuzione query: elimina capsula
+        const [result] = await connection.query(query_delete_capsule, [id]);
+
+        // Risposta in caso di successo
+        res.status(200).json(
+            {
+                id: id,
+                slug: slugDeletedCapsule,
+                message: 'Capsule deleted successfully'
+            }
+        );
+    } 
+    
+    // Gestione errore
+    catch (error) {
         res.status(500).json({ error: error.message });
     }
 }
@@ -139,10 +257,4 @@ async function destroy(req, res) {
 /************
     EXPORT
 ************/
-module.exports = {
-    index,
-    show,
-    store,
-    update,
-    destroy
-};
+module.exports = { index, show, store, update, destroy };
