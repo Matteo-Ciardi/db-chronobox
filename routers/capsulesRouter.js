@@ -15,6 +15,7 @@ router.get('/:slug', capsuleController.show);                   // Mostra una ca
 router.post('/', capsuleController.store);                      // Crea una nuova capsula
 router.put('/:id', capsuleController.update);                   // Aggiorna una capsula
 router.delete('/:id', capsuleController.destroy);               // Elimina una capsula
+router.get('/:slug/related', capsuleController.related);        // Mostra capsule correlate
 
 /************
     EXPORT

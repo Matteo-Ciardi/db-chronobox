@@ -8,6 +8,52 @@ const connection = require('../data/connection');
     CONTROLLER FUNZIONI
 **************************/
 
+//--------------------------------------------------- RELATED ----------------------------------------------------
+// Related - Mostra capsule con lo stesso theme della capsula corrente
+async function related(req, res) {
+    const slug = req.params.slug;
+
+    try {
+        // 1. Trova la capsula corrente per scoprire il theme
+        const query_get_capsule =
+        ` SELECT theme 
+          FROM capsule 
+          WHERE slug = ?
+        `;
+
+        const [capsuleResult] = await connection.query(query_get_capsule, [slug]);
+
+        if (capsuleResult.length === 0) {
+            return res.status(404).json({ error: "Capsule not found" });
+        }
+
+        const theme = capsuleResult[0].theme;
+
+        // 2. Trova tutte le capsule con lo stesso theme
+        const query_related =
+        ` SELECT *
+          FROM capsule
+          WHERE theme = ?
+          AND slug <> ?      -- per NON mostrare la capsula aperta
+        `;
+
+        const [relatedRows] = await connection.query(query_related, [theme, slug]);
+
+        // Aggiungo il percorso completo all'immagine
+        const relatedWithPath = relatedRows.map(capsule => ({
+            ...capsule,
+            img: req.imagePath + capsule.img
+        }));
+
+        res.json(relatedWithPath);
+    }
+    catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+}
+
+
+
 //--------------------------------------------------- INDEX ----------------------------------------------------
 // Index - Mostra tutte le capsule
 async function index(req, res) {
@@ -258,4 +304,4 @@ async function destroy(req, res) {
 /************
     EXPORT
 ************/
-module.exports = { index, show, store, update, destroy };
+module.exports = { index, show, store, update, destroy, related };
