@@ -60,6 +60,7 @@ async function show(req, res) {
         // Esecuzione query
         const [rows] = await connection.query(query_capsule, [slug]);
 
+        // Controllo se la SELECT non ha restituito risultati → l'ID non esiste
         if (rows.length === 0) {
             return res.status(404).json({ error: 'Capsule not found' });
         }
@@ -161,7 +162,7 @@ async function update(req, res) {
             [name, img, description, price, discounted_price, dimension, material, weight, capacity, resistance, warrenty, color, theme, id]
         );
 
-        // Controllo se nessuna riga è stata modificata -> l'ID non esiste
+        // Controllo: se nessuna riga è stata modificata -> l'ID non esiste
         if (result.affectedRows === 0) {
             return res.status(404).json({ error: 'Capsule not found' });
         }
@@ -211,7 +212,7 @@ async function destroy(req, res) {
     `;
 
     // Definizione query per eliminare una capsula
-    const query_delete_capsule =
+    const query_destroy_capsule =
         ` DELETE 
           FROM capsule 
           WHERE id = ?
@@ -222,20 +223,20 @@ async function destroy(req, res) {
         // Esecuzione query: recupero slug
         const [rows] = await connection.query(query_get_slug, [id]);
 
-        // Se la capsula non esiste → 404
+        // Controllo se la SELECT non ha restituito risultati → l'ID non esiste
         if (rows.length === 0) {
             return res.status(404).json({ error: 'Capsule not found' });
         }
 
         const slugDeletedCapsule = rows[0].slug; // salvo lo slug
 
-        // Commento
-        if (rows.length === 0) {
-            return res.status(404).json({ error: 'Capsule not found' });
-        }
-
         // Esecuzione query: elimina capsula
-        const [result] = await connection.query(query_delete_capsule, [id]);
+        const [result] = await connection.query(query_destroy_capsule, [id]);
+
+        // Controllo: se nessuna riga è stata modificata -> l'ID non esiste
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ error: "Capsule not found" });
+        }
 
         // Risposta in caso di successo
         res.status(200).json(
