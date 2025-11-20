@@ -60,6 +60,7 @@ async function show(req, res) {
         // Esecuzione query
         const [rows] = await connection.query(query_capsule, [slug]);
 
+        // Controllo se la SELECT non ha restituito risultati → l'ID non esiste
         if (rows.length === 0) {
             return res.status(404).json({ error: 'Capsule not found' });
         }
@@ -229,7 +230,7 @@ async function destroy(req, res) {
 
         const slugDeletedCapsule = rows[0].slug; // salvo lo slug
 
-        // Commento
+        // Controllo se la SELECT non ha restituito risultati → l'ID non esiste
         if (rows.length === 0) {
             return res.status(404).json({ error: 'Capsule not found' });
         }
