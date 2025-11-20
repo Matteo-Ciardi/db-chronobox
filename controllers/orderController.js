@@ -41,7 +41,6 @@ async function store(req, res) {
     try {
         const {
             method_id,
-            session_id,
             customer_name,
             customer_email,
             shipping_address,
@@ -59,11 +58,10 @@ async function store(req, res) {
 
         const [result] = await connection.query(
             `INSERT INTO orders 
-                (method_id, session_id, customer_name, customer_email, shipping_address, billing_address, total_amount, status)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+                (method_id, customer_name, customer_email, shipping_address, billing_address, total_amount, status)
+             VALUES (?, ?, ?, ?, ?, ?, ?)`,
             [
                 method_id || null,
-                session_id || null,
                 customer_name,
                 customer_email,
                 shipping_address,
@@ -88,7 +86,6 @@ async function update(req, res) {
     try {
         const {
             method_id,
-            session_id,
             customer_name,
             customer_email,
             shipping_address,
@@ -99,12 +96,11 @@ async function update(req, res) {
 
         const [result] = await connection.query(
             `UPDATE orders 
-             SET method_id = ?, session_id = ?, customer_name = ?, customer_email = ?, 
-                 shipping_address = ?, billing_address = ?, total_amount = ?, status = ?
-             WHERE id = ?`,
+         SET method_id = ?, customer_name = ?, customer_email = ?, 
+             shipping_address = ?, billing_address = ?, total_amount = ?, status = ?
+         WHERE id = ?`,
             [
                 method_id || null,
-                session_id || null,
                 customer_name,
                 customer_email,
                 shipping_address,
@@ -116,11 +112,10 @@ async function update(req, res) {
         );
 
         if (result.affectedRows === 0) {
-            return res.status(404).json({ error: 'Order not found' });
+            return res.status(404).json({ error: "Order not found" });
         }
 
-        res.json({ message: 'Order updated successfully' });
-
+        res.json({ message: "Order updated successfully" });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
