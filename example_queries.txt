@@ -4,162 +4,65 @@ Example API Calls for Chronobox Application (Postman Format)
 
 Base URL: http://localhost:3000
 
--------------------------------------------------------------------------------------------------------------------------------
+--------------------------------------------------------  CAPSULES  -----------------------------------------------------------------------
 Capsules Endpoints:
 
 1. GET all capsules
    Method: GET
-   URL: {{base_url}}/api/capsules
+   URL:  http://localhost:3000/api/capsules
    Headers: None
    Body: None
 
-2. GET capsule by ID
+2. GET capsule by slug
    Method: GET
-   URL: {{base_url}}/api/capsules/1
+   URL:  http://localhost:3000/api/capsules/capsule-mini-verde
    Headers: None
    Body: None
 
-3. CREATE new capsule
+3. STORE new capsule
    Method: POST
-   URL: {{base_url}}/api/capsules
+   URL: http://localhost:3000/api/capsules
    Headers: Content-Type: application/json
     Body (raw JSON):
     {
-      "name": "nuova-capsula",
-      "img": "classic-small.jpg",
-      "description": "descrizione-nuova-capsula",
-      "price": "19.90",
-      "discounted_price": "17.90",
-      "dimension": "5x5x5 cm",
-      "material": "Plastic",
-      "weight": "50g",
-      "capacity": "50ml",
-      "resistance": "Low",
-      "worrenty": "1y",
-      "color": "Red",
-      "theme": "Classic"
+        "name": "Capsule Mini Verde",
+        "img": "capsule-mini-verde.jpg",
+        "description": "Capsule entry-level, perfect for daily use.",
+        "price": 19.9,
+        "discounted_price": 17.9,
+        "dimension": "5x5x5 cm",
+        "material": "Plastic",
+        "weight": 50,
+        "capacity": 50,
+        "resistance": "Low",
+        "warrenty": 1,
+        "color": "Red",
+        "theme": "Classic"
     }
 
 4. UPDATE capsule
    Method: PUT
-   URL: {{base_url}}/api/capsules/41
+   URL: http://localhost:3000/api/capsules/55
    Headers: Content-Type: application/json
     Body (raw JSON):
       {
-      "name": "nuova-capsula-AGGIORNATA",
-      "img": "classic-small.jpg",
-      "description": "descrizione-nuova-capsula-AGGIORNATA",
-      "price": "19.90",
-      "discounted_price": "17.90",
-      "dimension": "5x5x5 cm",
-      "material": "Plastic",
-      "weight": "50g",
-      "capacity": "50ml",
-      "resistance": "Low",
-      "worrenty": "1y",
-      "color": "Red",
-      "theme": "Classic"
-  }
+        "name": "Capsule Premium Verde",
+        "img": "capsule-premium-verde.jpg",
+        "description": "Premium steel capsule for durability.",
+        "price": 44.9,
+        "discounted_price": 39.9,
+        "dimension": "5x5x5 cm",
+        "material": "Steel",
+        "weight": 80,
+        "capacity": 50,
+        "resistance": "High",
+        "warrenty": 2,
+        "color": "Silver",
+        "theme": "Premium"
+      }
 
 5. DELETE capsule
    Method: DELETE
-   URL: {{base_url}}/api/capsules/41
+   URL: http://localhost:3000/api/capsules/55
    Headers: None
    Body: None
-
--------------------------------------------------------------------------------------------------------------------------------
-
-Orders Endpoints:
-
-12. GET all orders
-    Method: GET
-    URL: {{base_url}}/api/orders
-    Headers: None
-    Body: None
-
-13. GET order by ID
-    Method: GET
-    URL: {{base_url}}/api/orders/1
-    Headers: None
-    Body: None
-
-14. CREATE new order
-    Method: POST
-    URL: {{base_url}}/api/orders
-    Headers: Content-Type: application/json
-    Body (raw JSON):
-    {
-      "method_id": 1,
-      "session_id": "session123",
-      "customer_name": "John Doe",
-      "customer_email": "john@example.com",
-      "shipping_address": "123 Main St",
-      "billing_address": "123 Main St",
-      "total": 99.99
-    }
-
-15. UPDATE order
-    Method: PUT
-    URL: {{base_url}}/api/orders/1
-    Headers: Content-Type: application/json
-    Body (raw JSON):
-    {
-      "method_id": 1,
-      "session_id": "session123",
-      "customer_name": "John Doe",
-      "customer_email": "john@example.com",
-      "shipping_address": "123 Main St",
-      "billing_address": "123 Main St",
-      "total": 99.99,
-      "status": "completed"
-    }
-
-16. DELETE order
-    Method: DELETE
-    URL: {{base_url}}/api/orders/1
-    Headers: None
-    Body: None
-
--------------------------------------------------------------------------------------------------------------------------------
-
-Payment Methods Endpoints:
-
-17. GET all payment methods
-    Method: GET
-    URL: {{base_url}}/api/payment-methods
-    Headers: None
-    Body: None
-
-18. GET payment method by ID
-    Method: GET
-    URL: {{base_url}}/api/payment-methods/1
-    Headers: None
-    Body: None
-
-19. CREATE new payment method
-    Method: POST
-    URL: {{base_url}}/api/payment-methods
-    Headers: Content-Type: application/json
-    Body (raw JSON):
-    {
-      "name": "New Method",
-      "type": "card"
-    }
-
-20. UPDATE payment method
-    Method: PUT
-    URL: {{base_url}}/api/payment-methods/1
-    Headers: Content-Type: application/json
-    Body (raw JSON):
-    {
-      "name": "Updated Method",
-      "type": "online"
-    }
-
-21. DELETE payment method
-    Method: DELETE
-    URL: {{base_url}}/api/payment-methods/1
-    Headers: None
-    Body: None
-
-Note: Set {{base_url}} as a variable in Postman to http://localhost:3000
