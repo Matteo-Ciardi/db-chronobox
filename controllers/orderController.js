@@ -2,6 +2,8 @@
      IMPORT
  ************/
 const connection = require('../data/connection');
+const { sendOrderEmails } = require("../services/emailService");
+
 
 /********************
     CONTROLLER FUNZIONI
@@ -196,47 +198,64 @@ async function show(req, res) {
 
 // store - Crea un ordine
 async function store(req, res) {
-    try {
-        const {
-            method_id,
-            customer_name,
-            customer_email,
-            shipping_address,
-            billing_address,
-            total_amount,
-            status // optional
-        } = req.body;
+  try {
+    const {
+      method_id,
+      customer_name,
+      customer_email,
+      shipping_address,
+      billing_address,
+      total_amount,
+      status, 
+      items 
+    } = req.body;
 
-        // Required fields validation
-        if (!customer_name || !customer_email || !shipping_address || total_amount == null) {
-            return res.status(400).json({
-                error: 'Missing required fields (customer_name, customer_email, shipping_address, total_amount)'
-            });
-        }
-
-        const [result] = await connection.query(
-            `INSERT INTO orders 
-                (method_id, customer_name, customer_email, shipping_address, billing_address, total_amount, status)
-             VALUES (?, ?, ?, ?, ?, ?, ?)`,
-            [
-                method_id || null,
-                customer_name,
-                customer_email,
-                shipping_address,
-                billing_address || null,
-                total_amount,
-                status || 'pending'
-            ]
-        );
-
-        res.status(201).json({
-            id: result.insertId,
-            message: 'Order created successfully'
-        });
-
-    } catch (error) {
-        res.status(500).json({ error: error.message });
+    // Required fields validation
+    if (!customer_name || !customer_email || !shipping_address || total_amount == null) {
+      return res.status(400).json({
+        error: 'Missing required fields (customer_name, customer_email, shipping_address, total_amount)'
+      });
     }
+
+    const [result] = await connection.query(
+      `INSERT INTO orders 
+        (method_id, customer_name, customer_email, shipping_address, billing_address, total_amount, status)
+       VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      [
+        method_id || null,
+        customer_name,
+        customer_email,
+        shipping_address,
+        billing_address || null,
+        total_amount,
+        status || 'pending'
+      ]
+    );
+
+    const savedOrder = {
+      id: result.insertId,
+      customerName: customer_name,
+      customerEmail: customer_email,
+      shippingAddress: shipping_address,
+      items: Array.isArray(items) ? items : []
+    };
+
+    // risposta  al FE
+    res.status(201).json({
+      id: savedOrder.id,
+      message: 'Order created successfully'
+    });
+    
+console.log(">>> provo a inviare email per ordine", savedOrder.id);
+
+    // invia email  senza bloccare la risposta
+    sendOrderEmails(savedOrder).catch((err) => {
+      console.error("Email send failed:", err);
+    });
+
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
 }
 
 // --------------------------------------------------- UPDATE ----------------------------------------------------
