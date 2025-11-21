@@ -13,13 +13,31 @@ Capsules Endpoints:
    Headers: None
    Body: None
 
-2. GET capsule by slug
+2. GET capsules mostPopulars
+   Method: GET
+   URL:  http://localhost:3000/api/capsules/most-populars
+   Headers: None
+   Body: None
+
+3. GET capsules newArrivals
+   Method: GET
+   URL:  http://localhost:3000/api/capsules/new-arrivals
+   Headers: None
+   Body: None
+
+4. GET capsules by slug + related (stesso tema)
+   Method: GET
+   URL:  http://localhost:3000/api/capsules/capsule-mini-verde/related
+   Headers: None
+   Body: None
+
+5. GET capsule by slug
    Method: GET
    URL:  http://localhost:3000/api/capsules/capsule-mini-verde
    Headers: None
    Body: None
 
-3. STORE new capsule
+6. STORE new capsule
    Method: POST
    URL: http://localhost:3000/api/capsules
    Headers: Content-Type: application/json
@@ -40,7 +58,7 @@ Capsules Endpoints:
         "theme": "Classic"
     }
 
-4. UPDATE capsule
+7. UPDATE capsule
    Method: PUT
    URL: http://localhost:3000/api/capsules/55
    Headers: Content-Type: application/json
@@ -61,8 +79,11 @@ Capsules Endpoints:
         "theme": "Premium"
       }
 
-5. DELETE capsule
+8. DELETE capsule
    Method: DELETE
    URL: http://localhost:3000/api/capsules/55
    Headers: None
    Body: None
+
+
+--------------------------------------------------------  AGGIUNGERE  -----------------------------------------------------------------------
