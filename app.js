@@ -7,6 +7,7 @@ const nodemailer = require("nodemailer");
 const express = require('express');
 const cors = require('cors');
 const imagePath = require('./middlewares/imagePath');
+const braintreeRouter = require("./routers/braintreeRouter");
 
 // Import dei router
 const capsulesRouter = require('./routers/capsulesRouter');
@@ -66,6 +67,8 @@ app.use((req, res, next) => {
 app.use('/api/capsules', capsulesRouter);
 app.use('/api/checkout/orders', ordersRouter);
 app.use('/api/checkout/payment-methods', paymentMethodsRouter);
+
+app.use("/api/braintree", braintreeRouter);
 
 
 /********************

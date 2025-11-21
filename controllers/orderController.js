@@ -3,6 +3,7 @@
  ************/
 const connection = require('../data/connection');
 const { sendOrderEmails } = require("../services/emailService");
+const gateway = require("../services/braintreeGateaway");
 
 
 /********************
@@ -14,8 +15,8 @@ const { sendOrderEmails } = require("../services/emailService");
 // index - Mostra tutti gli ordini
 async function index(req, res) {
 
-    const query_orders = 
-    ` SELECT
+    const query_orders =
+        ` SELECT
         orders.id AS order_id,
 
         -- ORDINI
@@ -173,7 +174,8 @@ async function store(req, res) {
             billing_address,
             total_amount,
             status,
-            items
+            items,
+            paymentNonce
         } = req.body;
 
         // Validazione campi obbligatori
@@ -183,8 +185,43 @@ async function store(req, res) {
             });
         }
 
+        // (Opzionale ma consigliato) qui potresti ricalcolare il totale leggendo i prezzi dal DB con gli id delle capsule
+        const amount = Number(total_amount).toFixed(2);
+
+        let btResult;
+        try {
+
+            // 1) creazione transazione Braintree
+            btResult = await gateway.transaction.sale({
+                amount: amount.toString(),
+                paymentMethodNonce: paymentNonce,
+                options: {
+                    submitForSettlement: true,
+                },
+            });
+
+        } catch (error) {
+            console.error("Errore nel checkout Braintree:", error);
+            return res.status(500).json({
+                error: "Errore nel checkout"
+
+            });
+        }
+
+        if (!btResult.success) {
+            console.error("Pagamento Braintree fallito:", btResult);
+            return res.status(402).json({
+                success: false,
+                message: "Pagamento rifiutato",
+                errors: btResult.errors,
+            });
+        }
+
+        const transactionId = btResult.transaction.id;
+        console.log("Pagamento Braintree OK, transactionId:", transactionId);
+
         // Inserisco ordine
-        const [result] = await connection.query(
+        const [dbResult] = await connection.query(
             `INSERT INTO orders 
                 (method_id, customer_name, customer_email, shipping_address, billing_address, total_amount, status)
              VALUES (?, ?, ?, ?, ?, ?, ?)`,
@@ -200,7 +237,7 @@ async function store(req, res) {
         );
 
         const savedOrder = {
-            id: result.insertId,
+            id: dbResult.insertId,
             customerName: customer_name,
             customerEmail: customer_email,
             shippingAddress: shipping_address,
