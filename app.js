@@ -1,6 +1,8 @@
 /************
     IMPORT
 ************/
+console.log(">>> APP.JS NUOVO CARICATO");
+
 const nodemailer = require("nodemailer");
 const express = require('express');
 const cors = require('cors');
@@ -24,19 +26,16 @@ const port = process.env.PORT || 3000;
 /***************************
     SMTP TRANSPORTER (GMAIL)
 ****************************/
-const smtpPort = Number(process.env.SMTP_PORT);
-
 const transporter = nodemailer.createTransport({
   service: "gmail",
   auth: {
     user: process.env.SMTP_USER,
     pass: process.env.SMTP_PASS, // app password 16 caratteri
   },
-  connectionTimeout: 8000, // 8 secondi
+  connectionTimeout: 8000,
   greetingTimeout: 8000,
   socketTimeout: 8000,
 });
-
 
 // verifica SMTP a boot
 transporter.verify((err) => {
@@ -56,6 +55,12 @@ app.use(express.json());
 app.use(imagePath);
 app.use(express.static('public'));
 
+// ✅ LOG GLOBALE: stampa OGNI richiesta che arriva
+app.use((req, res, next) => {
+  console.log(">>> ARRIVA:", req.method, req.originalUrl);
+  next();
+});
+
 
 /********************
     ROUTERS API
@@ -73,25 +78,23 @@ app.use('/api/checkout/payment-methods', paymentMethodsRouter);
     TEST EMAIL ROUTE
 *********************/
 app.get("/api/test-mail", async (req, res) => {
-  console.log(">>> /api/test-mail chiamata");  // 1) entra qui
+  console.log(">>> /api/test-mail chiamata");
 
   try {
     const info = await transporter.sendMail({
-      from: process.env.EMAIL_FROM,
+      from: process.env.SMTP_USER,      // ✅ da gmail vera (meno filtri)
       to: process.env.ADMIN_EMAIL,
       subject: "Test Chronobox",
       text: "Se leggi questo, Nodemailer funziona 🎉",
     });
 
-    console.log(">>> mail inviata");           // 2) arriva qui solo se Gmail risponde
-
+    console.log(">>> mail inviata");
     res.json({ ok: true, messageId: info.messageId });
   } catch (err) {
     console.error(">>> errore mail:", err.message);
     res.status(500).json({ ok: false, error: err.message });
   }
 });
-
 
 
 /*********************
