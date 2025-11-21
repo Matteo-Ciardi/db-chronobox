@@ -11,19 +11,105 @@ const connection = require('../data/connection');
 
 
 //--------------------------------------------------- INDEX ----------------------------------------------------
-// Index - Mostra tutte le capsule
+
+// Index - Mostra tutte le capsule applicando filtri e ordinamenti dinamici
 async function index(req, res) {
 
-    // Definizione query
-    const query_capsules =  ` 
+    // Estraggo i filtri dalla query string dell'URL
+    const { search, theme, minPrice, maxPrice, order } = req.query;
+
+    // Definizione query di base: nessun filtro
+    let query_capsules =  ` 
         SELECT *
         FROM capsule
     `;
 
+    let whereConditions = [];   // array contenente le condizioni da inserire nel WHERE "condizione = ?"
+    let queryParams = [];       // array contenente i valori che sostituiranno i placeholder "?"
+
+    /* -----------------------
+          FILTRI DI RICERCA
+    -------------------------- */
+
+    // Ricerca (parziale) per nome della capsula
+    if (search && search.trim() !== "") {
+        whereConditions.push(`name LIKE ?`);
+        queryParams.push(`%${search}%`);       
+    }
+
+    // Ricerca (parziale) per tema
+    if (theme && theme.trim() !== "") {
+        whereConditions.push(`theme LIKE ?`);
+        queryParams.push(`%${theme}%`);
+    }
+
+    // Ricerca per prezzo minimo
+    if (minPrice) {
+        whereConditions.push(`price >= ?`);
+        queryParams.push(minPrice);
+    }
+
+    // Ricerca per prezzo massimo
+    if (maxPrice) {
+        whereConditions.push(`price <= ?`);
+        queryParams.push(maxPrice);
+    }
+
+    // Se ci sono condizioni, aggiungo il WHERE alla query
+    if(whereConditions.length > 0 ) {
+        query_capsules += " WHERE " + whereConditions.join(" AND ");
+    }
+
+    /* -------------------
+           ORDINAMENTI
+    ---------------------- */
+    let orderBy = "";
+
+    switch (order) {
+
+        case "price_asc":
+            orderBy = " ORDER BY price ASC";
+            break;
+
+        case "price_desc":
+            orderBy = " ORDER BY price DESC";
+            break;
+
+        case "name_asc":
+            orderBy = " ORDER BY name ASC";
+            break;
+
+        case "name_desc":
+            orderBy = " ORDER BY name DESC";
+            break;
+
+        // case "recent":
+        //     orderBy = " ORDER BY created_at DESC";
+        //     break;
+
+        // case "old":
+        //     orderBy = " ORDER BY created_at ASC";
+        //     break;
+
+        case "theme_asc":
+            orderBy = " ORDER BY theme ASC";
+            break;
+
+        case "theme_desc":
+            orderBy = " ORDER BY theme DESC";
+            break;
+
+        default:
+            orderBy = "";
+    }
+
+    // Query finale
+    const finalQuery = query_capsules + orderBy;
+
     try {
 
-        // Esecuzione query: recupero tutte le capsule dal database
-        const [rows] = await connection.query(query_capsules);
+        // Esecuzione query con i valori effettivi del placeholder letti dall'URL
+        const [rows] = await connection.query(finalQuery, queryParams);
 
         // Per ogni capsula aggiungo il percorso completo all’immagine
         const capsulesWithFullPathImgs = rows.map(capsule => {
@@ -83,7 +169,7 @@ async function mostPopulars(req, res) {
 }
 
 //--------------------------------------------------- NEW ARRIVALS ----------------------------------------------------
-// newArrivals - Mostra le capsule più popolari
+// newArrivals - Mostra le nuove capsule
 async function newArrivals(req, res) {
 
     // Definizione query
@@ -99,7 +185,7 @@ async function newArrivals(req, res) {
 
     try {
 
-        // Esecuzione query: recupero le nuov capsule dal database
+        // Esecuzione query: recupero le nuove capsule dal database
         const [rows] = await connection.query(query_newArrivals);
 
         // Per ogni capsula nuova aggiungo il percorso completo all’immagine

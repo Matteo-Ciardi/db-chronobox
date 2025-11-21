@@ -7,11 +7,71 @@ Base URL: http://localhost:3000
 --------------------------------------------------------  CAPSULES  -----------------------------------------------------------------------
 Capsules Endpoints:
 
-1. GET all capsules
+1. GET all capsules (senza filtri)
    Method: GET
    URL:  http://localhost:3000/api/capsules
    Headers: None
    Body: None
+
+   /* -----------------------
+         FILTRI DI RICERCA
+    -------------------------- */
+
+   // Ricerca per nome (search)
+   GET http://localhost:3000/api/capsules?search=love                ->    Cerca “love” in qualsiasi punto del nome
+   GET http://localhost:3000/api/capsules?search=re                  ->    Cerca una parola parziale (es. "re"):
+
+   // Ricerca per tema (theme)
+   GET http://localhost:3000/api/capsules?theme=Classic             ->    Tutte le capsule che contengono Classic nel tema:
+   GET http://localhost:3000/api/capsules?theme=Clas               ->     Tema Parziale, esempio Clas
+
+   // Ricerca per prezzo minimo                              
+   GET http://localhost:3000/api/capsules?minPrice=20                ->    Capsule con prezzo ≥ 20
+   
+   // Ricerca per prezzo massimo
+   GET http://localhost:3000/api/capsules?maxPrice=50                ->    Capsule con prezzo ≤ 50
+
+   // Ricerca per range prezzo (min e max)
+   GET http://localhost:3000/api/capsules?minPrice=20&maxPrice=50    ->    Capsule tra 20 e 50
+
+
+      /* --------------------
+            ORDINAMENTO
+      ---------------------- */
+
+      // Ordina per prezzo crescente:
+      GET http://localhost:3000/api/capsules?order=price_asc
+
+      // Ordina per prezzo decrescente:
+      GET http://localhost:3000/api/capsules?order=price_desc
+
+      // Ordina per nome A-Z
+      GET http://localhost:3000/api/capsules?order=name_asc
+
+      // Ordina per nome Z-A
+      GET http://localhost:3000/api/capsules?order=name_desc
+
+      // Ordina per tema A-Z
+      GET http://localhost:3000/api/capsules?order=theme_asc
+
+      // Ordina per tema Z-A
+      GET http://localhost:3000/api/capsules?order=theme_desc
+
+      // Ordina più recenti
+      GET http://localhost:3000/api/capsules?order=recent
+
+      // Ordina meno recenti
+      GET http://localhost:3000/api/capsules?order=old
+
+      NESSUN RISULTATO:
+         Se non trova nulla → JSON vuoto:
+
+         []
+
+
+
+
+
 
 2. GET capsules mostPopulars
    Method: GET
