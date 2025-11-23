@@ -83,13 +83,13 @@ async function index(req, res) {
             orderBy = " ORDER BY name DESC";
             break;
 
-        // case "recent":
-        //     orderBy = " ORDER BY created_at DESC";
-        //     break;
+        case "most_recent":
+            orderBy = " ORDER BY id DESC";
+            break;
 
-        // case "old":
-        //     orderBy = " ORDER BY created_at ASC";
-        //     break;
+        case "less_recent":
+            orderBy = " ORDER BY id ASC";
+            break;
 
         case "theme_asc":
             orderBy = " ORDER BY theme ASC";
@@ -180,7 +180,7 @@ async function newArrivals(req, res) {
         FROM capsule
         INNER JOIN capsule_new_arrivals
             on capsule.id = capsule_new_arrivals.capsule_id
-        ORDER BY capsule_new_arrivals.arrival_order ASC;
+        ORDER BY capsule_new_arrivals.arrival_order DESC;
     `;
 
     try {
