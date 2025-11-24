@@ -355,15 +355,14 @@ async function store(req, res) {
 
     try {
 
-        // Recupero dati dal body della richiesta (tramite destructuring)
-        const { name, img, description, price, discounted_price, dimension, material, weight, capacity, resistance, warrenty, color, theme} = req.body;
-
         // Validazioni dei campi
         const validation = validateCapsule(req.body);
         if (!validation.valid) {
             return res.status(400).json({ errors: validation.errors });
         }
-
+        
+        // Recupero dati dal body della richiesta (tramite destructuring)
+        const { name, img, description, price, discounted_price, dimension, material, weight, capacity, resistance, warrenty, color, theme} = req.body;
 
         // Esecuzione query passando i valori recuperati dal body
         const [result] = await connection.query(
