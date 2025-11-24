@@ -230,7 +230,8 @@ async function store(req, res) {
             ]
         );
 
-       const savedOrder = {
+        const savedOrder = {
+
             id: dbResult.insertId,
             customerName: customer_name,
             customerEmail: customer_email,
