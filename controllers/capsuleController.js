@@ -2,13 +2,13 @@
      IMPORT
  ************/
 const connection = require('../data/connection');
+const { validateCapsule } = require("../validations/capsuleValidation");
+
 
 
 /*************************
     CONTROLLER FUNZIONI
 **************************/
-
-
 
 //--------------------------------------------------- INDEX ----------------------------------------------------
 
@@ -17,6 +17,47 @@ async function index(req, res) {
 
     // Estraggo i filtri dalla query string dell'URL
     const { search, theme, minPrice, maxPrice, order } = req.query;
+
+    /******************************
+        VALIDAZIONI QUERY STRING
+    *******************************/
+
+    // search deve essere stringa
+    if (search && typeof search !== "string") {
+        return res.status(400).json({ error: "Il parametro 'search' deve essere una stringa" });
+    }
+
+    // theme deve essere stringa
+    if (theme && typeof theme !== "string") {
+        return res.status(400).json({ error: "Il parametro 'theme' deve essere una stringa" });
+    }
+
+    // minPrice deve essere numero
+    if (minPrice && isNaN(minPrice)) {
+        return res.status(400).json({ error: "Il parametro 'minPrice' deve essere un numero" });
+    }
+
+    // maxPrice deve essere numero
+    if (maxPrice && isNaN(maxPrice)) {
+        return res.status(400).json({ error: "Il parametro 'maxPrice' deve essere un numero" });
+    }
+
+    // minPrice ≤ maxPrice
+    if (minPrice && maxPrice && Number(minPrice) > Number(maxPrice)) {
+        return res.status(400).json({ error: "minPrice non può essere maggiore di maxPrice" });
+    }
+
+    // order deve essere uno tra quelli consentiti
+    const validOrders = [
+        "price_asc", "price_desc",
+        "name_asc", "name_desc",
+        "most_recent", "less_recent",
+        "theme_asc", "theme_desc"
+    ];
+
+    if (order && !validOrders.includes(order)) {
+        return res.status(400).json({ error: "Parametro 'order' non valido" });
+    }
 
     // Definizione query di base: nessun filtro
     let query_capsules =  ` 
@@ -317,10 +358,12 @@ async function store(req, res) {
         // Recupero dati dal body della richiesta (tramite destructuring)
         const { name, img, description, price, discounted_price, dimension, material, weight, capacity, resistance, warrenty, color, theme} = req.body;
 
-        // Validazione dei campi richiesti
-        if (!name || !img || !description || !price || !discounted_price || !dimension || !material || !weight || !capacity || !resistance || !warrenty || !color || !theme) {
-             return res.status(400).json({ error: 'Missing required fields' });
-         }
+        // Validazioni dei campi
+        const validation = validateCapsule(req.body);
+        if (!validation.valid) {
+            return res.status(400).json({ errors: validation.errors });
+        }
+
 
         // Esecuzione query passando i valori recuperati dal body
         const [result] = await connection.query(
@@ -376,6 +419,15 @@ async function update(req, res) {
         `;
 
     try {
+
+        // Validazione dei campi
+        const validation = validateCapsule(req.body);
+
+        if (!validation.valid) {
+            return res.status(400).json({ errors: validation.errors });
+        }
+
+
         // Esecuzione query: aggiorna capsula
         const [result] = await connection.query(
             query_update_capsule,
