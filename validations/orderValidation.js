@@ -22,8 +22,16 @@ function validateOrder(data) {
         errors.push("Il campo 'customer_email' è obbligatorio");
     } else {
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
         if (!emailRegex.test(data.customer_email)) {
             errors.push("Il formato dell'email non è valido");
+        } else {
+            // 🔍 Controllo dominio (opzionale ma consigliato)
+            const domain = data.customer_email.split("@")[1];
+
+            if (!domain || !domain.includes(".")) {
+                errors.push("Il dominio dell'email non è valido");
+            }
         }
     }
 
