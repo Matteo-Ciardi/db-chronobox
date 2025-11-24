@@ -11,11 +11,14 @@ const router = express.Router() // Inizializzazione router express
 
 // Definizione delle rotte CRUD
 router.get('/', capsuleController.index);                       // Mostra tutte le capsule
+router.get('/most-populars', capsuleController.mostPopulars);   // Mostra le capsule più popolari
+router.get('/new-arrivals', capsuleController.newArrivals);     // Mostra le nuove capsule
+router.get('/:slug/related', capsuleController.related);        // Mostra capsule correlate
 router.get('/:slug', capsuleController.show);                   // Mostra una capsula specifica
 router.post('/', capsuleController.store);                      // Crea una nuova capsula
 router.put('/:id', capsuleController.update);                   // Aggiorna una capsula
 router.delete('/:id', capsuleController.destroy);               // Elimina una capsula
-router.get('/:slug/related', capsuleController.related);        // Mostra capsule correlate
+
 
 /************
     EXPORT

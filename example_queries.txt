@@ -7,62 +7,167 @@ Base URL: http://localhost:3000
 --------------------------------------------------------  CAPSULES  -----------------------------------------------------------------------
 Capsules Endpoints:
 
-1. GET all capsules
+   /* ------------
+         INDEX
+    -------------- */
+
+   1. GET all capsules (senza filtri)
+      Method: GET
+      URL:  http://localhost:3000/api/capsules
+      Headers: None
+      Body: None
+
+      /* -----------------------
+            FILTRI DI RICERCA
+      -------------------------- */
+
+      // Ricerca per nome (search)
+      GET http://localhost:3000/api/capsules?search=love                ->    Cerca “love” in qualsiasi punto del nome
+      GET http://localhost:3000/api/capsules?search=re                  ->    Cerca una parola parziale (es. "re"):
+
+      // Ricerca per tema (theme)
+      GET http://localhost:3000/api/capsules?theme=Classic             ->    Tutte le capsule che contengono Classic nel tema:
+      GET http://localhost:3000/api/capsules?theme=Clas               ->     Tema Parziale, esempio Clas
+
+      // Ricerca per prezzo minimo                              
+      GET http://localhost:3000/api/capsules?minPrice=20                ->    Capsule con prezzo ≥ 20
+      
+      // Ricerca per prezzo massimo
+      GET http://localhost:3000/api/capsules?maxPrice=50                ->    Capsule con prezzo ≤ 50
+
+      // Ricerca per range prezzo (min e max)
+      GET http://localhost:3000/api/capsules?minPrice=20&maxPrice=50    ->    Capsule tra 20 e 50
+
+
+      /* --------------------
+            ORDINAMENTO
+      ---------------------- */
+
+      // Ordina per prezzo crescente:
+      GET http://localhost:3000/api/capsules?order=price_asc
+
+      // Ordina per prezzo decrescente:
+      GET http://localhost:3000/api/capsules?order=price_desc
+
+      // Ordina per nome A-Z
+      GET http://localhost:3000/api/capsules?order=name_asc
+
+      // Ordina per nome Z-A
+      GET http://localhost:3000/api/capsules?order=name_desc
+
+      // Ordina per tema A-Z
+      GET http://localhost:3000/api/capsules?order=theme_asc
+
+      // Ordina per tema Z-A
+      GET http://localhost:3000/api/capsules?order=theme_desc
+
+      // Ordina più recenti
+      GET http://localhost:3000/api/capsules?order=most_recent
+
+      // Ordina meno recenti
+      GET http://localhost:3000/api/capsules?order=less_recent
+
+      NESSUN RISULTATO:
+         Se non trova nulla → JSON vuoto:
+         []
+
+   /* --------------------
+         PIU' POPOLARI
+   ---------------------- */
+
+   2. GET capsules mostPopulars
    Method: GET
-   URL:  http://localhost:3000/api/capsules
+   URL:  http://localhost:3000/api/capsules/most-populars
    Headers: None
    Body: None
 
-2. GET capsule by slug
+   /* --------------------
+         NUOVI ARRIVI
+   ---------------------- */
+
+   3. GET capsules newArrivals
    Method: GET
-   URL:  http://localhost:3000/api/capsules/capsule-mini-verde
+   URL:  http://localhost:3000/api/capsules/new-arrivals
    Headers: None
    Body: None
 
-3. STORE new capsule
-   Method: POST
-   URL: http://localhost:3000/api/capsules
-   Headers: Content-Type: application/json
-    Body (raw JSON):
-    {
-        "name": "Capsule Mini Verde",
-        "img": "capsule-mini-verde.jpg",
-        "description": "Capsule entry-level, perfect for daily use.",
-        "price": 19.9,
-        "discounted_price": 17.9,
-        "dimension": "5x5x5 cm",
-        "material": "Plastic",
-        "weight": 50,
-        "capacity": 50,
-        "resistance": "Low",
-        "warrenty": 1,
-        "color": "Red",
-        "theme": "Classic"
-    }
+   /* ---------------
+        RELATED
+   ----------------- */
+   4. GET capsules by slug + related (stesso tema)
+   Method: GET
+   URL:  http://localhost:3000/api/capsules/capsule-mini-verde/related
+   Headers: None
+   Body: None
 
-4. UPDATE capsule
-   Method: PUT
-   URL: http://localhost:3000/api/capsules/55
-   Headers: Content-Type: application/json
-    Body (raw JSON):
+   /* -----------
+        SHOW
+   ------------- */
+   5. GET capsule by slug
+      Method: GET
+      URL:  http://localhost:3000/api/capsules/capsule-mini-verde
+      Headers: None
+      Body: None
+
+    /* -----------
+        STORE
+   ------------- */
+   6. STORE new capsule
+      Method: POST
+      URL: http://localhost:3000/api/capsules
+      Headers: Content-Type: application/json
+      Body (raw JSON):
       {
-        "name": "Capsule Premium Verde",
-        "img": "capsule-premium-verde.jpg",
-        "description": "Premium steel capsule for durability.",
-        "price": 44.9,
-        "discounted_price": 39.9,
-        "dimension": "5x5x5 cm",
-        "material": "Steel",
-        "weight": 80,
-        "capacity": 50,
-        "resistance": "High",
-        "warrenty": 2,
-        "color": "Silver",
-        "theme": "Premium"
+         "name": "Capsule Mini Verde",
+         "img": "capsule-mini-verde.jpg",
+         "description": "Capsule entry-level, perfect for daily use.",
+         "price": 19.9,
+         "discounted_price": 17.9,
+         "dimension": "5x5x5 cm",
+         "material": "Plastic",
+         "weight": 50,
+         "capacity": 50,
+         "resistance": "Low",
+         "warrenty": 1,
+         "color": "Red",
+         "theme": "Classic"
       }
+   
+   /* ------------
+         UPDATE
+   --------------- */
+   7. UPDATE capsule
+      Method: PUT
+      URL: http://localhost:3000/api/capsules/55
+      Headers: Content-Type: application/json
+      Body (raw JSON):
+         {
+         "name": "Capsule Premium Verde",
+         "img": "capsule-premium-verde.jpg",
+         "description": "Premium steel capsule for durability.",
+         "price": 44.9,
+         "discounted_price": 39.9,
+         "dimension": "5x5x5 cm",
+         "material": "Steel",
+         "weight": 80,
+         "capacity": 50,
+         "resistance": "High",
+         "warrenty": 2,
+         "color": "Silver",
+         "theme": "Premium"
+         }
 
-5. DELETE capsule
-   Method: DELETE
-   URL: http://localhost:3000/api/capsules/55
-   Headers: None
-   Body: None
+            
+   /* --------------
+         DESTROY
+   ----------------- */
+   8. DELETE capsule
+      Method: DELETE
+      URL: http://localhost:3000/api/capsules/55
+      Headers: None
+      Body: None
+
+
+---------------------------------------------------  ORDERS  ----------------------------------------------------------
+
+-----------------------------------------------  PAYMENT METHOD  -------------------------------------------------------
