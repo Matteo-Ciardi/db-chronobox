@@ -2,10 +2,12 @@
     IMPORT
 ************/
 const connection = require('../data/connection');
+const { validatePaymentMethod } = require("../validations/paymentMethodValidation");
 
-/********************
+
+/***********************
     CONTROLLER FUNZIONI
-*********************/
+************************/
 
 // index - Mostra tutti i metodi di pagamento
 async function index(req, res) {
@@ -41,10 +43,9 @@ async function store(req, res) {
     try {
         const { name, provider, type, logo_url, description, active } = req.body;
 
-        if (!name || !provider || !type) {
-            return res.status(400).json({
-                error: 'Fields "name", "provider", and "type" are required'
-            });
+        const validation = validatePaymentMethod(req.body);
+        if (!validation.valid) {
+            return res.status(400).json({ errors: validation.errors });
         }
 
         const [result] = await connection.query(
@@ -67,6 +68,14 @@ async function store(req, res) {
 // update - Aggiorna un metodo di pagamento
 async function update(req, res) {
     try {
+
+        // Validazioni campi
+        const validation = validatePaymentMethod(req.body);
+        if (!validation.valid) {
+            return res.status(400).json({ errors: validation.errors });
+        }
+        
+        // Recupero dati dal body della richiesta (tramite destructuring)
         const { name, provider, type, logo_url, description, active } = req.body;
 
         const [result] = await connection.query(

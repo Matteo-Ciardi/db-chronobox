@@ -4,11 +4,12 @@
 const connection = require('../data/connection');
 const { sendOrderEmails } = require("../services/emailService");
 const gateway = require("../services/braintreeGateaway");
+const { validateOrder } = require("../validations/orderValidation");
 
 
-/********************
+/************************
     CONTROLLER FUNZIONI
-*********************/
+*************************/
 
 // --------------------------------------------------- INDEX ----------------------------------------------------
 
@@ -165,25 +166,18 @@ async function show(req, res) {
 
 // store - Crea un ordine
 async function store(req, res) {
-    try {
-        const {
-            method_id,
-            customer_name,
-            customer_email,
-            shipping_address,
-            billing_address,
-            total_amount,
-            status,
-            items,
-            paymentNonce
-        } = req.body;
 
-        // Validazione campi obbligatori
-        if (!customer_name || !customer_email || !shipping_address || total_amount == null) {
-            return res.status(400).json({
-                error: 'Missing required fields (customer_name, customer_email, shipping_address, total_amount)'
-            });
+    try {
+
+        // Recupero dati dal body della richiesta (tramite destructuring)
+        const { method_id, customer_name, customer_email, shipping_address, billing_address, total_amount, status, items, paymentNonce } = req.body;
+
+        // Validazione dei campi
+        const validation = validateOrder(req.body);
+        if (!validation.valid) {
+            return res.status(400).json({ errors: validation.errors });
         }
+
 
         // (Opzionale ma consigliato) qui potresti ricalcolare il totale leggendo i prezzi dal DB con gli id delle capsule
         const amount = Number(total_amount).toFixed(2);
@@ -237,6 +231,7 @@ async function store(req, res) {
         );
 
         const savedOrder = {
+
             id: dbResult.insertId,
             customerName: customer_name,
             customerEmail: customer_email,
@@ -275,16 +270,18 @@ async function store(req, res) {
 
 // update - Aggiorna un ordine
 async function update(req, res) {
+
+   
     try {
-        const {
-            method_id,
-            customer_name,
-            customer_email,
-            shipping_address,
-            billing_address,
-            total_amount,
-            status
-        } = req.body;
+
+        // Recupero dati dal body della richiesta (tramite destructuring)
+        const { method_id, customer_name, customer_email, shipping_address, billing_address, total_amount, status } = req.body;
+
+        // Validazione dei campi
+        const validation = validateOrder(req.body);
+        if (!validation.valid) {
+            return res.status(400).json({ errors: validation.errors });
+        }
 
         const [result] = await connection.query(
             `UPDATE orders 
