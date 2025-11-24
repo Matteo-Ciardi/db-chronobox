@@ -1,74 +1,333 @@
 const transporter = require("../middlewares/mailer");
+const path = require("path");
 
-function formatItems(items = []) {
+function normalizeImg(img) {
+  if (!img) return null;
+
+  try {
+    const u = new URL(img);
+    img = u.pathname;
+  } catch {}
+
+  img = String(img).trim();
+
+  const idx = img.indexOf("/imgs/");
+  if (idx !== -1) return img.slice(idx);
+
+  if (!img.startsWith("/")) return `/imgs/${img}`;
+
+  return `/imgs/${path.basename(img)}`;
+}
+
+function formatItemsText(items = []) {
   if (!Array.isArray(items) || items.length === 0) return "Nessun articolo";
+
   return items
-    .map(i => `- ${i.name} x${i.quantity ?? 1} (€${i.price ?? ""})`)
+    .map((i) => {
+      const qty = Number(i.quantity ?? 1);
+      const unit = Number(i.price ?? i.unit_price ?? 0);
+      const sub = unit * qty;
+      return `- ${i.name} — €${unit.toFixed(2)} x${qty} = €${sub.toFixed(2)}`;
+    })
     .join("\n");
 }
 
-async function sendOrderEmails(order) {
-  console.log(">>> sendOrderEmails chiamata", order.id);
+function buildAttachments(items = []) {
+  if (!Array.isArray(items)) return [];
 
+  return items
+    .map((i, idx) => {
+      if (!i._relImg) return null;
+
+      const clean = i._relImg.startsWith("/") ? i._relImg.slice(1) : i._relImg;
+      return {
+        filename: path.basename(clean),
+        path: path.join(__dirname, "..", "public", clean),
+        cid: `item${idx}@chronobox`,
+      };
+    })
+    .filter(Boolean);
+}
+
+function formatItemsHtml(items = []) {
+  if (!Array.isArray(items) || items.length === 0) {
+    return `<p>Nessun articolo</p>`;
+  }
+
+  return items
+    .map((i, idx) => {
+      const qty = Number(i.quantity ?? 1);
+      const unit = Number(i.price ?? i.unit_price ?? 0);
+      const sub = unit * qty;
+      const cid = i._relImg ? `cid:item${idx}@chronobox` : null;
+
+      return `
+        <div style="display:flex; gap:14px; padding:12px 0; border-bottom:1px solid #eee; align-items:center;">
+          ${
+            cid
+              ? `
+            <img 
+              src="${cid}" 
+              alt="${i.name}" 
+              style="width:90px; height:90px; object-fit:cover; border-radius:10px; border:1px solid #ddd;"
+            />
+          `
+              : ""
+          }
+          <div>
+            <div style="font-weight:700; font-size:15px; margin-bottom:4px;">${i.name}</div>
+            <div style="font-size:14px;">
+              €${unit.toFixed(2)} 
+              <span style="opacity:.7;">x ${qty}</span>
+              <span style="margin-left:8px; font-weight:700;">= €${sub.toFixed(
+                2
+              )}</span>
+            </div>
+          </div>
+        </div>
+      `;
+    })
+    .join("");
+}
+
+function calcTotal(items = []) {
+  if (!Array.isArray(items)) return 0;
+  return items.reduce((sum, i) => {
+    const qty = Number(i.quantity ?? 1);
+    const unit = Number(i.price ?? i.unit_price ?? 0);
+    return sum + unit * qty;
+  }, 0);
+}
+
+async function sendOrderEmails(order) {
   const {
     id,
     customerName,
     customerEmail,
     shippingAddress,
-    items
+    billingAddress,
+    items = [],
+    shippingDate,
+    letterContent,
   } = order;
 
-  const itemsText = formatItems(items);
+  const safeItems = items.map((i) => ({
+    ...i,
+    _relImg: normalizeImg(i.img),
+  }));
 
-  // mail al cliente
+  const itemsText = formatItemsText(safeItems);
+  const itemsHtml = formatItemsHtml(safeItems);
+  const total = calcTotal(safeItems);
+  const attachments = buildAttachments(safeItems);
+
   const customerMail = {
     from: process.env.SMTP_USER,
     to: customerEmail,
-    subject: `Chronobox - Ordine #${id} ricevuto`,
-    text:
-`Ciao ${customerName}!
+    subject: `Chronobox – Ordine #${id} ricevuto`,
+    text: `🚀 Ciao ${customerName}, hai conservato un ricordo 💛
+Ordine avvenuto con successo, ora fai parte di Chronobox!
 
-Abbiamo ricevuto il tuo ordine #${id}.
+I TUOI DATI:
+Nome: ${customerName}
+Email: ${customerEmail}
 
-Spedizione:
+Indirizzo di fatturazione:
+${billingAddress || "—"}
+
+Indirizzo di spedizione:
 ${shippingAddress}
 
-Articoli:
+Dettagli capsula:
+Data di consegna/apertura: ${shippingDate || "—"}
+Lettera: ${letterContent || "—"}
+
+Riepilogo prodotti:
 ${itemsText}
 
-Grazie!
-Chronobox`
+Totale ordine: €${total.toFixed(2)}
+
+Grazie dal team di Chronobox!
+`,
+    html: `
+<div style="margin:0;padding:0;background:#f6efe6;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f6efe6;padding:24px 0;">
+    <tr>
+      <td align="center">
+        <table width="680" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 6px 18px rgba(0,0,0,0.08);font-family:Arial,sans-serif;color:#111;">
+          <tr>
+            <td style="background:#6b3f2a;padding:22px 26px;text-align:center;color:#fff;">
+              <h1 style="margin:0;font-size:26px;letter-spacing:0.5px;">Chronobox</h1>
+              <p style="margin:6px 0 0;font-size:14px;opacity:0.9;">Hai conservato un ricordo 💛</p>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:26px;">
+              <h2 style="margin:0 0 8px;font-size:20px;">🚀 Ciao ${customerName}!</h2>
+              <p style="margin:0 0 14px;font-size:15px;color:#333;">Ordine avvenuto con successo, ora fai parte di Chronobox!</p>
+
+              <div style="background:#fff4e8;border:1px solid #ffd9b8;padding:10px 12px;border-radius:10px;margin:14px 0;">
+                <p style="margin:0;font-size:14px;"><b>Numero ordine:</b> #${id}</p>
+              </div>
+
+              <h3 style="margin:18px 0 8px;font-size:16px;color:#6b3f2a;">I TUOI DATI</h3>
+              <table width="100%" cellpadding="0" cellspacing="0" style="font-size:14px;color:#222;">
+                <tr>
+                  <td style="padding:6px 0;"><b>Nome</b></td>
+                  <td style="padding:6px 0;">${customerName}</td>
+                </tr>
+                <tr>
+                  <td style="padding:6px 0;"><b>Email</b></td>
+                  <td style="padding:6px 0;">${customerEmail}</td>
+                </tr>
+                <tr>
+                  <td style="padding:6px 0;vertical-align:top;"><b>Indirizzo fatturazione</b></td>
+                  <td style="padding:6px 0;">${billingAddress || "—"}</td>
+                </tr>
+                <tr>
+                  <td style="padding:6px 0;vertical-align:top;"><b>Indirizzo spedizione</b></td>
+                  <td style="padding:6px 0;">${shippingAddress}</td>
+                </tr>
+              </table>
+
+              <h3 style="margin:18px 0 8px;font-size:16px;color:#6b3f2a;">DETTAGLI CAPSULA</h3>
+              <div style="background:#f7f7fb;border:1px solid #e6e6f0;padding:12px;border-radius:10px;font-size:14px;">
+                <p style="margin:0 0 6px;"><b>Data consegna/apertura:</b> ${shippingDate || "—"}</p>
+                <p style="margin:0;"><b>Lettera:</b> ${letterContent || "—"}</p>
+              </div>
+
+              <h3 style="margin:18px 0 8px;font-size:16px;color:#6b3f2a;">RIEPILOGO PRODOTTI</h3>
+              <div style="background:#fafafa;border:1px solid #eee;border-radius:12px;padding:10px;">
+                ${itemsHtml}
+              </div>
+
+              <div style="margin-top:16px;background:#6b3f2a;color:#fff;padding:12px 14px;border-radius:10px;text-align:center;">
+                <span style="font-size:15px;opacity:0.9;">Totale ordine</span><br/>
+                <span style="font-size:20px;font-weight:700;">€${total.toFixed(
+                  2
+                )}</span>
+              </div>
+
+              <p style="margin-top:18px;font-size:15px;">Grazie dal team di Chronobox!</p>
+            </td>
+          </tr>
+          <tr>
+            <td style="background:#fff4e8;padding:14px 18px;text-align:center;font-size:12px;color:#555;">
+              Chronobox • Questo messaggio è stato inviato automaticamente
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</div>
+`,
+    attachments,
   };
 
-  // mail admin (a te)
-  const adminMail = {
-    from: process.env.SMTP_USER,
-    to: "chronobox25@gmail.com",
-    subject: `Nuovo ordine Chronobox #${id}`,
-    text:
-`NUOVO ORDINE RICEVUTO!
+ const adminMail = {
+  from: process.env.SMTP_USER,
+  to: process.env.ADMIN_EMAIL || "chronobox25@gmail.com",
+  subject: `📦 NUOVO ORDINE RICEVUTO #${id}`,
+  text: `NUOVO ORDINE RICEVUTO 🚀
 
-ID ordine: ${id}
-Cliente: ${customerName} (${customerEmail})
-Spedizione: ${shippingAddress}
+Numero ordine: #${id}
 
-Articoli:
-${itemsText}`
-  };
+CLIENTE:
+Nome: ${customerName}
+Email: ${customerEmail}
+
+FATTURAZIONE:
+${billingAddress || "—"}
+
+SPEDIZIONE:
+${shippingAddress}
+
+DETTAGLI CAPSULA:
+Data consegna/apertura: ${shippingDate || "—"}
+Lettera: ${letterContent || "—"}
+
+ARTICOLI ACQUISTATI:
+${itemsText}
+
+TOTALE ORDINE: €${total.toFixed(2)}
+`,
+  html: `
+<div style="margin:0;padding:0;background:#f3f4f6;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="padding:20px 0;background:#f3f4f6;font-family:Arial,sans-serif;">
+    <tr>
+      <td align="center">
+        <table width="680" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:14px;overflow:hidden;box-shadow:0 6px 18px rgba(0,0,0,0.08);color:#111;">
+          
+          <tr>
+            <td style="background:#111827;color:#fff;padding:18px 22px;text-align:center;">
+              <h2 style="margin:0;font-size:20px;">NUOVO ORDINE RICEVUTO 🚀</h2>
+              <p style="margin:6px 0 0;font-size:13px;opacity:.9;">Ordine #${id}</p>
+            </td>
+          </tr>
+
+          <tr>
+            <td style="padding:22px;">
+              
+              <div style="background:#f9fafb;border:1px solid #e5e7eb;padding:12px;border-radius:10px;margin-bottom:14px;">
+                <p style="margin:0;font-size:14px;"><b>Numero ordine:</b> #${id}</p>
+              </div>
+
+              <h3 style="margin:16px 0 8px;font-size:15px;">Cliente</h3>
+              <p style="margin:0;font-size:14px;"><b>Nome:</b> ${customerName}</p>
+              <p style="margin:6px 0 0;font-size:14px;"><b>Email:</b> ${customerEmail}</p>
+
+              <h3 style="margin:16px 0 8px;font-size:15px;">Fatturazione</h3>
+              <p style="margin:0;font-size:14px;">${billingAddress || "—"}</p>
+
+              <h3 style="margin:16px 0 8px;font-size:15px;">Spedizione</h3>
+              <p style="margin:0;font-size:14px;">${shippingAddress}</p>
+
+              <h3 style="margin:16px 0 8px;font-size:15px;">Dettagli capsula</h3>
+              <p style="margin:0;font-size:14px;"><b>Data consegna/apertura:</b> ${shippingDate || "—"}</p>
+              <p style="margin:6px 0 0;font-size:14px;"><b>Lettera:</b> ${letterContent || "—"}</p>
+
+              <h3 style="margin:16px 0 8px;font-size:15px;">Articoli acquistati</h3>
+              <div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:10px;padding:12px;">
+                ${itemsHtml}
+              </div>
+
+              <div style="margin-top:16px;background:#111827;color:#fff;padding:12px;border-radius:10px;text-align:center;">
+                <b style="font-size:16px;">Totale ordine: €${total.toFixed(2)}</b>
+              </div>
+
+            </td>
+          </tr>
+
+          <tr>
+            <td style="background:#f9fafb;padding:12px;text-align:center;font-size:12px;color:#6b7280;">
+              Chronobox Admin • Notifica automatica
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+</div>
+`
+};
+
+
+
+
 
   try {
-    console.log(">>> invio CUSTOMER mail a", customerEmail);
     const r1 = await transporter.sendMail(customerMail);
-    console.log(">>> CUSTOMER mail inviata, id:", r1.messageId);
-
-    console.log(">>> invio ADMIN mail a chronobox25@gmail.com");
     const r2 = await transporter.sendMail(adminMail);
-    console.log(">>> ADMIN mail inviata, id:", r2.messageId);
-
-    console.log(`✅ Email cliente + admin inviate per ordine ${id}`);
+    console.log(
+      ` Email cliente + admin inviate per ordine ${id}`,
+      r1.messageId,
+      r2.messageId
+    );
   } catch (err) {
-    console.error("❌ sendOrderEmails errore:", err.message);
-    throw err; // così il catch nel controller lo vede
+    console.error(" sendOrderEmails errore:", err.message);
+    throw err;
   }
 }
 

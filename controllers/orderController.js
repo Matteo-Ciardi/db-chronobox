@@ -199,13 +199,17 @@ async function store(req, res) {
             ]
         );
 
-        const savedOrder = {
-            id: result.insertId,
-            customerName: customer_name,
-            customerEmail: customer_email,
-            shippingAddress: shipping_address,
-            items: Array.isArray(items) ? items : []
-        };
+       const savedOrder = {
+  id: result.insertId,
+  customerName: customer_name,
+  customerEmail: customer_email,
+  shippingAddress: shipping_address,
+  billingAddress: billing_address || null,
+  shippingDate: items?.[0]?.shipping_period || null,
+  letterContent: items?.[0]?.letter_content || null,
+
+  items: Array.isArray(items) ? items : []
+};
 
         // Risposta al FE
         res.status(201).json({
