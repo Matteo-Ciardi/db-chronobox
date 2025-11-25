@@ -2,10 +2,8 @@
     Funzione principale di validazione capsule.
     Riceve in ingresso:
     - `data` -> oggetto contenente i valori ricevuti dal body della richiesta.
-    - `isUpdate` indica se la validazione è true (per UPDATE) o false (per STORE)
-       
-       Questo è utile perché in UPDATE i campi non sono obbligatori,
-       mentre in STORE sì.
+    - `isUpdate` -> false per STORE (campi obbligatori)
+                    true  per UPDATE (campi facoltativi)
 */
     function validateCapsule(data, isUpdate = false) {
 
