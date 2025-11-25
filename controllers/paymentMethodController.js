@@ -72,7 +72,7 @@ async function store(req, res) {
     try {
 
         // Validazione input utente
-        const validation = validatePaymentMethod(req.body, false);  // false = modalità STORE (campi obbligatori)
+        const validation = validatePaymentMethod(req.body, false); // STORE → campi obbligatori
         if (!validation.valid) {
             return res.status(400).json({ errors: validation.errors });
         }
@@ -124,7 +124,7 @@ async function update(req, res) {
 
     try {
         // Validazioni input utente
-        const validation = validatePaymentMethod(req.body, true);   // true = UPDATE → campi NON obbligatori
+        const validation = validatePaymentMethod(req.body, true); // UPDATE → campi facoltativi
         if (!validation.valid) {
             return res.status(400).json({ errors: validation.errors });
         }
