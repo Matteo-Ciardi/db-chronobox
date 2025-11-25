@@ -77,6 +77,7 @@ async function index(req, res) {
           FILTRI DI RICERCA
     -------------------------- */
 
+    // Ricerca per sconto
     if (onSale === "true") {
         whereConditions.push(`discounted_price IS NOT NULL AND discounted_price <> ''`);
     }
@@ -358,7 +359,7 @@ async function show(req, res) {
 // Store - Crea una nuova capsula
 async function store(req, res) {
 
-    // Definizione query per creare una capsula
+    // Definizione query per inserire una nuova capsula
     const query_store_capsule =
         ` INSERT INTO capsule (name, img, description, price, discounted_price, dimension, material, weight, capacity, resistance, warrenty, color, theme)
           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
@@ -366,8 +367,8 @@ async function store(req, res) {
 
     try {
 
-        // Validazioni dei campi
-        const validation = validateCapsule(req.body);
+        // Validazioni input utente
+        const validation = validateCapsule(req.body, false); // false = modalità STORE (campi obbligatori)
         if (!validation.valid) {
             return res.status(400).json({ errors: validation.errors });
         }
@@ -382,7 +383,7 @@ async function store(req, res) {
         );
 
         // Recupero id capsula creata
-        const idCeatedCapsule = result.insertId;
+        const idCreatedCapsule = result.insertId;
 
         // Definizione query per recuperare lo slug generato da MySQL
         const query_slug =
@@ -392,7 +393,7 @@ async function store(req, res) {
             `;
 
         // Esecuzione query: recupero slug
-        const [slugResult] = await connection.query(query_slug, [idCeatedCapsule]);
+        const [slugResult] = await connection.query(query_slug, [idCreatedCapsule]);
 
         // Recuper slug dalla risposta
         const slugCreatedCapsule = slugResult[0]?.slug;
@@ -400,7 +401,7 @@ async function store(req, res) {
         // Risposta in caso di successo
         res.status(201).json(
             {
-                id: idCeatedCapsule,
+                id: idCreatedCapsule,
                 slug: slugCreatedCapsule,
                 message: 'Capsule created successfully'
             }
@@ -415,68 +416,106 @@ async function store(req, res) {
 
 //--------------------------------------------------- UPDATE ----------------------------------------------------
 
-// update - Aggiorna una capsula
+// update - Aggiorna una capsula esistente
 async function update(req, res) {
 
-    const id = parseInt(req.params.id); // Recupero id dall'URL
-    const { name, img, description, price, discounted_price, dimension, material, weight, capacity, resistance, warrenty, color, theme } = req.body;  // Recupero dati dal body della richiesta (tramite destructuring)
+    // Recupero l'id dall'URL
+    const id = parseInt(req.params.id);
 
-    // Definizione query per aggiornate una capsula
-    const query_update_capsule =
-        ` UPDATE capsule
-          SET name = ?, img = ?, description = ?, price = ?, discounted_price = ?, dimension = ?, material = ?, weight = ?, capacity = ?, resistance = ?, warrenty = ?, color = ?, theme = ?
-          WHERE id = ?
-        `;
+    // Controllo se l'id è valido
+    if (isNaN(id)) {
+        return res.status(400).json({ error: "ID non valido" });
+    }
 
     try {
 
-        // Validazione dei campi
-        const validation = validateCapsule(req.body);
+        // Validazione input
 
+        const validation = validateCapsule(req.body, true);     // true = modalità UPDATE (campi NON obbligatori)
         if (!validation.valid) {
             return res.status(400).json({ errors: validation.errors });
         }
 
+        /****************************************
+            COSTRUZIONE QUERY UPDATE DINAMICA
+        ****************************************/
 
-        // Esecuzione query: aggiorna capsula
-        const [result] = await connection.query(
-            query_update_capsule,
-            [name, img, description, price, discounted_price, dimension, material, weight, capacity, resistance, warrenty, color, theme, id]
-        );
+        // Array che conterrà le parti dinamiche della query
+        // Esempio: ["color = ?", "price = ?", ...]
+        const fields = [];
 
-        // Controllo: se nessuna riga è stata modificata -> l'ID non esiste
-        if (result.affectedRows === 0) {
-            return res.status(404).json({ error: 'Capsule not found' });
+        // Valori corrispondenti ai campi da aggiornare
+        const values = [];
+
+        // Ciclo su OGNI proprietà del body
+        for (const key in req.body) {
+
+            // Valore del campo presente nel body
+            const value = req.body[key];
+
+            // Se il campo NON è undefined, null o stringa vuota → lo aggiorno
+            if (value !== undefined && value !== null && value !== "") {
+                fields.push(`${key} = ?`);
+                values.push(value);
+            }
         }
 
-        // Definizione query per recuperare lo slug aggiornato da MySQL
-        const query_slug =
-            ` SELECT slug 
-              FROM capsule 
-              WHERE id = ?
-            `;
+        // Se non è stato passato nessun campo da aggiornare → errore
+        if (fields.length === 0) {
+            return res.status(400).json({ error: "Nessun campo da aggiornare" });
+        }
 
-        // Esecuzione query: recupero slug
-        const [slugResult] = await connection.query(query_slug, [id]);
+        // Aggiungo l'id come ultimo valore per il WHERE id = ?
+        values.push(id);
 
-        // Recuper slug dalla risposta
-        const slugUpdatedCapsule = slugResult[0]?.slug;
+
+
+        /****************************************
+                ESECUZIONE QUERY UPDATE
+        ****************************************/
+
+        // Creo la query dinamica unendo i campi con la virgola
+        const query = `
+            UPDATE capsule
+            SET ${fields.join(", ")}
+            WHERE id = ?
+        `;
+
+        // Eseguo la query
+        const [result] = await connection.query(query, values);
+
+        // Se nessuna riga è stata modificata → id non trovato nel DB
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ error: "Capsula non trovata" });
+        }
+
+        // Recupero slug aggiornato
+        const [slugResult] = await connection.query(
+            "SELECT slug FROM capsule WHERE id = ?",
+            [id]
+        );
+
+        // Estraggo lo slug aggiornato
+        const updatedSlug = slugResult[0]?.slug;
+
+
 
         // Risposta in caso di successo
-        res.status(200).json(
-            {
-                id: id,
-                slug: slugUpdatedCapsule,
-                message: 'Capsule updated successfully'
-            }
-        );
-    }
 
-    // Gestione errore
+        res.json({
+            id: id,
+            slug: updatedSlug,
+            message: "Capsula aggiornata con successo"
+        });
+
+    } 
+    
+    // Gestione errori
     catch (error) {
         res.status(500).json({ error: error.message });
     }
 }
+
 
 //--------------------------------------------------- Destroy ----------------------------------------------------
 
