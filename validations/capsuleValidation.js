@@ -5,7 +5,7 @@
     - `isUpdate` -> false per STORE (campi obbligatori)
                     true  per UPDATE (campi facoltativi)
 */
-    function validateCapsule(data, isUpdate = false) {
+    function validateCapsule(data, isUpdate) {
 
         const errors = [];
 

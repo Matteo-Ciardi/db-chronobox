@@ -21,22 +21,23 @@ Capsules Endpoints:
             FILTRI DI RICERCA
       -------------------------- */
 
-      // Ricerca per nome (search)
-      GET http://localhost:3000/api/capsules?search=love                ->    Cerca “love” in qualsiasi punto del nome
-      GET http://localhost:3000/api/capsules?search=re                  ->    Cerca una parola parziale (es. "re"):
+      Filtra capsule per sconto (onSale)
+      GET http://localhost:3000/api/capsules?onSale=true             ->    Tutte le capsule scontate
+
+      Filtra capsule per nome (search)
+      GET http://localhost:3000/api/capsules?search=coppia             ->    Tutte le capsule aventi la parola "coppia" nel nome
 
       // Ricerca per tema (theme)
-      GET http://localhost:3000/api/capsules?theme=Classic             ->    Tutte le capsule che contengono Classic nel tema:
-      GET http://localhost:3000/api/capsules?theme=Clas               ->     Tema Parziale, esempio Clas
+      GET http://localhost:3000/api/capsules?theme=Viaggio             ->    Tutte le capsule che contengono "Viaggio" nel tema:
 
       // Ricerca per prezzo minimo                              
-      GET http://localhost:3000/api/capsules?minPrice=20                ->    Capsule con prezzo ≥ 20
+      GET http://localhost:3000/api/capsules?minPrice=20                ->    Tutte le capsule con prezzo ≥ 20
       
       // Ricerca per prezzo massimo
-      GET http://localhost:3000/api/capsules?maxPrice=50                ->    Capsule con prezzo ≤ 50
+      GET http://localhost:3000/api/capsules?maxPrice=50                ->    Tutte le capsule con prezzo ≤ 50
 
       // Ricerca per range prezzo (min e max)
-      GET http://localhost:3000/api/capsules?minPrice=20&maxPrice=50    ->    Capsule tra 20 e 50
+      GET http://localhost:3000/api/capsules?minPrice=20&maxPrice=50    ->    Tutte le capsule tra 20 e 50
 
 
       /* --------------------
@@ -55,17 +56,18 @@ Capsules Endpoints:
       // Ordina per nome Z-A
       GET http://localhost:3000/api/capsules?order=name_desc
 
+      // Ordina dalle più recenti alle meno recenti
+      GET http://localhost:3000/api/capsules?order=most_recent
+
+      // Ordina dalle meno recenti alle più recenti
+      GET http://localhost:3000/api/capsules?order=less_recent
+
       // Ordina per tema A-Z
       GET http://localhost:3000/api/capsules?order=theme_asc
 
       // Ordina per tema Z-A
       GET http://localhost:3000/api/capsules?order=theme_desc
 
-      // Ordina più recenti
-      GET http://localhost:3000/api/capsules?order=most_recent
-
-      // Ordina meno recenti
-      GET http://localhost:3000/api/capsules?order=less_recent
 
       NESSUN RISULTATO:
          Se non trova nulla → JSON vuoto:
@@ -105,7 +107,7 @@ Capsules Endpoints:
    ------------- */
    5. GET capsule by slug
       Method: GET
-      URL:  http://localhost:3000/api/capsules/capsule-mini-verde
+      URL:  http://localhost:3000/api/capsules/capsula-premium-blu
       Headers: None
       Body: None
 
@@ -118,19 +120,111 @@ Capsules Endpoints:
       Headers: Content-Type: application/json
       Body (raw JSON):
       {
-         "name": "Capsule Mini Verde",
-         "img": "capsule-mini-verde.jpg",
-         "description": "Capsule entry-level, perfect for daily use.",
-         "price": 19.9,
-         "discounted_price": 17.9,
-         "dimension": "5x5x5 cm",
-         "material": "Plastic",
-         "weight": 50,
-         "capacity": 50,
-         "resistance": "Low",
-         "warrenty": 1,
-         "color": "Red",
-         "theme": "Classic"
+        "name": "Nuova Capsula Mini Verde",
+        "slug": "capsula-mini-verde",
+        "img": "http://localhost:3000/imgs/capsules/capsule-mini-verde.jpg",
+        "description": "La Capsula Mini è il modo più pratico e moderno per creare un ricordo senza tempo — compatta, elegante e pronta a custodire la tua storia fino al giorno in cui sceglierai di riscoprirla.",
+        "price": 19.9,
+        "discounted_price": null,
+        "dimension": "5x5x5 cm",
+        "material": "Plastica",
+        "weight": 50,
+        "capacity": 50,
+        "resistance": "Alta",
+        "warrenty": 1,
+        "color": "Verde",
+        "theme": "Mini"
+      }
+
+      // Validazioni:
+
+      1. Estensione immagine
+            Method: POST
+      URL: http://localhost:3000/api/capsules
+      Headers: Content-Type: application/json
+      Body (raw JSON):
+      {
+        "name": "Nuova Capsula Mini Verde",
+        "slug": "capsula-mini-verde",
+        "img": "immagine.txt",
+        "description": "La Capsula Mini è il modo più pratico e moderno per creare un ricordo senza tempo — compatta, elegante e pronta a custodire la tua storia fino al giorno in cui sceglierai di riscoprirla.",
+        "price": 19.9,
+        "discounted_price": null,
+        "dimension": "5x5x5 cm",
+        "material": "Plastica",
+        "weight": 50,
+        "capacity": 50,
+        "resistance": "Alta",
+        "warrenty": 1,
+        "color": "Verde",
+        "theme": "Mini"
+    }
+
+    
+      2. Validazioni numeriche
+            Method: POST
+      URL: http://localhost:3000/api/capsules
+      Headers: Content-Type: application/json
+      Body (raw JSON):
+      {
+        "name": "Nuova Capsula Mini Verde",
+        "slug": "capsula-mini-verde",
+        "img": "http://localhost:3000/imgs/capsules/capsule-mini-verde.jpg",
+        "description": "La Capsula Mini è il modo più pratico e moderno per creare un ricordo senza tempo — compatta, elegante e pronta a custodire la tua storia fino al giorno in cui sceglierai di riscoprirla.",
+        "price": "a",
+        "discounted_price": "a",
+        "dimension": "5x5x5 cm",
+        "material": "Plastica",
+        "weight": "a",
+        "capacity": "a",
+        "resistance": "Alta",
+        "warrenty": "a",
+        "color": "Verde",
+        "theme": "Mini"
+    }
+
+      3. Validazioni limiti numerici
+      Method: POST
+      URL: http://localhost:3000/api/capsules
+      Headers: Content-Type: application/json
+      Body (raw JSON):
+      {
+        "name": "Nuova Capsula Mini Verde",
+        "slug": "capsula-mini-verde",
+        "img": "http://localhost:3000/imgs/capsules/capsule-mini-verde.jpg",
+        "description": "La Capsula Mini è il modo più pratico e moderno per creare un ricordo senza tempo — compatta, elegante e pronta a custodire la tua storia fino al giorno in cui sceglierai di riscoprirla.",
+        "price": -5,
+        "discounted_price": 20,
+        "dimension": "5x5x5 cm",
+        "material": "Plastica",
+        "weight": 0,
+        "capacity": -2,
+        "resistance": "Alta",
+        "warrenty": -1,
+        "color": "Verde",
+        "theme": "Mini"
+    }
+
+      4. Validazioni stringhe
+      Method: POST
+      URL: http://localhost:3000/api/capsules
+      Headers: Content-Type: application/json
+      Body (raw JSON):
+      {
+        "name": 1,
+        "slug": "capsula-mini-verde",
+        "img": "http://localhost:3000/imgs/capsules/capsule-mini-verde.jpg",
+        "description": "a",
+        "price": 19.9,
+        "discounted_price": null,
+        "dimension": "5x5x5 cm",
+        "material": "b",
+        "weight": 50,
+        "capacity": 50,
+        "resistance": "Alta",
+        "warrenty": 1,
+        "color": 2,
+        "theme": "Mini"
       }
    
    /* ------------
@@ -138,24 +232,12 @@ Capsules Endpoints:
    --------------- */
    7. UPDATE capsule
       Method: PUT
-      URL: http://localhost:3000/api/capsules/55
+      URL: http://localhost:3000/api/capsules/50
       Headers: Content-Type: application/json
       Body (raw JSON):
-         {
-         "name": "Capsule Premium Verde",
-         "img": "capsule-premium-verde.jpg",
-         "description": "Premium steel capsule for durability.",
-         "price": 44.9,
-         "discounted_price": 39.9,
-         "dimension": "5x5x5 cm",
-         "material": "Steel",
-         "weight": 80,
-         "capacity": 50,
-         "resistance": "High",
-         "warrenty": 2,
-         "color": "Silver",
-         "theme": "Premium"
-         }
+      {
+        "color": "blu"
+      }
 
             
    /* --------------
@@ -163,11 +245,169 @@ Capsules Endpoints:
    ----------------- */
    8. DELETE capsule
       Method: DELETE
-      URL: http://localhost:3000/api/capsules/55
+      URL: http://localhost:3000/api/capsules/50
       Headers: None
       Body: None
 
 
 ---------------------------------------------------  ORDERS  ----------------------------------------------------------
+Orders Endpoints:
 
+   /* ------------
+         INDEX
+    -------------- */
+
+   1. GET all orders (senza filtri)
+      Method: GET
+      URL:  http://localhost:3000/api/capsules
+      Headers: None
+      Body: None
+
+
+   /* -----------
+        SHOW
+   ------------- */
+   5. GET order by id
+      Method: GET
+      URL:  http://localhost:3000/api/capsules/capsula-premium-blu
+      Headers: None
+      Body: None
+
+    /* -----------
+        STORE
+   ------------- */
+   6. STORE new order
+      Method: POST
+      URL: http://localhost:3000/api/capsules
+      Headers: Content-Type: application/json
+      Body (raw JSON):
+      {
+        "name": "Nuova Capsula Mini Verde",
+        "slug": "capsula-mini-verde",
+        "img": "http://localhost:3000/imgs/capsules/capsule-mini-verde.jpg",
+        "description": "La Capsula Mini è il modo più pratico e moderno per creare un ricordo senza tempo — compatta, elegante e pronta a custodire la tua storia fino al giorno in cui sceglierai di riscoprirla.",
+        "price": 19.9,
+        "discounted_price": null,
+        "dimension": "5x5x5 cm",
+        "material": "Plastica",
+        "weight": 50,
+        "capacity": 50,
+        "resistance": "Alta",
+        "warrenty": 1,
+        "color": "Verde",
+        "theme": "Mini"
+      }
+
+      // Validazioni:
+
+      1. Estensione immagine
+      Method: POST
+      URL: http://localhost:3000/api/capsules
+      Headers: Content-Type: application/json
+      Body (raw JSON):
+      {
+        "name": "Nuova Capsula Mini Verde",
+        "slug": "capsula-mini-verde",
+        "img": "immagine.txt",
+        "description": "La Capsula Mini è il modo più pratico e moderno per creare un ricordo senza tempo — compatta, elegante e pronta a custodire la tua storia fino al giorno in cui sceglierai di riscoprirla.",
+        "price": 19.9,
+        "discounted_price": null,
+        "dimension": "5x5x5 cm",
+        "material": "Plastica",
+        "weight": 50,
+        "capacity": 50,
+        "resistance": "Alta",
+        "warrenty": 1,
+        "color": "Verde",
+        "theme": "Mini"
+    }
+
+    
+      2. Validazioni numeriche
+            Method: POST
+      URL: http://localhost:3000/api/capsules
+      Headers: Content-Type: application/json
+      Body (raw JSON):
+      {
+        "name": "Nuova Capsula Mini Verde",
+        "slug": "capsula-mini-verde",
+        "img": "http://localhost:3000/imgs/capsules/capsule-mini-verde.jpg",
+        "description": "La Capsula Mini è il modo più pratico e moderno per creare un ricordo senza tempo — compatta, elegante e pronta a custodire la tua storia fino al giorno in cui sceglierai di riscoprirla.",
+        "price": "a",
+        "discounted_price": "a",
+        "dimension": "5x5x5 cm",
+        "material": "Plastica",
+        "weight": "a",
+        "capacity": "a",
+        "resistance": "Alta",
+        "warrenty": "a",
+        "color": "Verde",
+        "theme": "Mini"
+    }
+
+      3. Validazioni limiti numerici
+      Method: POST
+      URL: http://localhost:3000/api/capsules
+      Headers: Content-Type: application/json
+      Body (raw JSON):
+      {
+        "name": "Nuova Capsula Mini Verde",
+        "slug": "capsula-mini-verde",
+        "img": "http://localhost:3000/imgs/capsules/capsule-mini-verde.jpg",
+        "description": "La Capsula Mini è il modo più pratico e moderno per creare un ricordo senza tempo — compatta, elegante e pronta a custodire la tua storia fino al giorno in cui sceglierai di riscoprirla.",
+        "price": -5,
+        "discounted_price": 20,
+        "dimension": "5x5x5 cm",
+        "material": "Plastica",
+        "weight": 0,
+        "capacity": -2,
+        "resistance": "Alta",
+        "warrenty": -1,
+        "color": "Verde",
+        "theme": "Mini"
+    }
+
+      4. Validazioni stringhe
+      Method: POST
+      URL: http://localhost:3000/api/capsules
+      Headers: Content-Type: application/json
+      Body (raw JSON):
+      {
+        "name": 1,
+        "slug": "capsula-mini-verde",
+        "img": "http://localhost:3000/imgs/capsules/capsule-mini-verde.jpg",
+        "description": "a",
+        "price": 19.9,
+        "discounted_price": null,
+        "dimension": "5x5x5 cm",
+        "material": "b",
+        "weight": 50,
+        "capacity": 50,
+        "resistance": "Alta",
+        "warrenty": 1,
+        "color": 2,
+        "theme": "Mini"
+      }
+   
+   /* ------------
+         UPDATE
+   --------------- */
+   7. UPDATE capsule
+      Method: PUT
+      URL: http://localhost:3000/api/capsules/50
+      Headers: Content-Type: application/json
+      Body (raw JSON):
+      {
+        "color": "blu"
+      }
+
+            
+   /* --------------
+         DESTROY
+   ----------------- */
+   8. DELETE capsule
+      Method: DELETE
+      URL: http://localhost:3000/api/capsules/50
+      Headers: None
+      Body: None
 -----------------------------------------------  PAYMENT METHOD  -------------------------------------------------------

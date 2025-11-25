@@ -20,7 +20,7 @@ function validateOrder(data, isUpdate = false) {
     if (!isUpdate) {
         if (isEmpty(data.customer_name)) errors.push("Il campo 'customer_name' è obbligatorio");
         if (isEmpty(data.customer_email)) errors.push("Il campo 'customer_email' è obbligatorio");
-        if (isEmpty(data.shipping_address)) errors.push("Il campo 'shipping_address' è obbligatorio");
+        if (isEmpty(data.billing_address)) errors.push("Il campo 'billing_address' è obbligatorio");
 
         // Items deve essere array NON vuoto
         if (isEmpty(data.items) || !Array.isArray(data.items) || data.items.length === 0) {
@@ -78,9 +78,9 @@ function validateOrder(data, isUpdate = false) {
         }
     }
 
-    /******************************
+    /************************
        VALIDAZIONE ITEMS
-   ******************************/
+   **************************/
     if (Array.isArray(data.items)) {
 
         data.items.forEach((item, i) => {
@@ -101,11 +101,11 @@ function validateOrder(data, isUpdate = false) {
                 errors.push(prefix + "Il prezzo unitario non può essere negativo");
             }
 
-            // shipping_period
-            if (!isEmpty(item.shipping_period)) {
+            // billing_address
+            if (!isEmpty(item.billing_address)) {
                 const date = new Date(item.shipping_period);
                 if (isNaN(date.getTime())) {
-                    errors.push(prefix + "Il campo 'shipping_period' deve essere una data valida");
+                    errors.push(prefix + "Il campo 'billing_address' deve essere una data valida");
                 }
             }
 
