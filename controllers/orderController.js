@@ -195,6 +195,7 @@ async function store(req, res) {
             return res.status(400).json({ errors: validation.errors });
         }
 
+
         // Recupero dati dal body della richiesta (tramite destructuring)
         const { method_id, customer_name, customer_email, shipping_address, billing_address, total_amount, status, items, paymentNonce } = req.body;
 
@@ -221,7 +222,6 @@ async function store(req, res) {
             console.error("Errore nel checkout Braintree:", error);
             return res.status(500).json({
                 error: "Errore nel checkout"
-
             });
         }
 
@@ -260,17 +260,42 @@ async function store(req, res) {
             ]
         );
 
+        // ==========================================================
+        // ✅ NORMALIZZO ITEMS PER EMAIL (snake_case -> camelCase)
+        // così emailService legge lettera e data da ogni item
+        // ==========================================================
+        const normalizedItems = Array.isArray(items)
+            ? items.map(i => ({
+                name: i.name,
+                quantity: i.quantity ?? 1,
+                price: i.price ?? i.unit_price ?? 0,
+                img: i.img,
+
+                // questi due campi servono per stampare UNA lettera per capsula
+                letterContent: i.letterContent ?? i.letter_content ?? null,
+                shippingDate: i.shippingDate ?? i.shipping_period ?? null,
+            }))
+            : [];
+
         // Preparo oggetto ordine per invio email
         const savedOrder = {
-
             id: dbResult.insertId,
             customerName: customer_name,
             customerEmail: customer_email,
             shippingAddress: shipping_address,
             billingAddress: billing_address || null,
-            shippingDate: items?.[0]?.shipping_period || null,
-            letterContent: items?.[0]?.letter_content || null,
-            items: Array.isArray(items) ? items : []
+          
+            // shippingDate: items?.[0]?.shipping_period || null,
+            // letterContent: items?.[0]?.letter_content || null,
+            // items: Array.isArray(items) ? items : []
+
+            // fallback dal primo item (non è più la fonte principale)
+            shippingDate: normalizedItems?.[0]?.shippingDate || null,
+            letterContent: normalizedItems?.[0]?.letterContent || null,
+
+            // ✅ items puliti che userà la mail
+            items: normalizedItems
+
         };
 
         // Risposta in caso di successo
@@ -279,9 +304,11 @@ async function store(req, res) {
             message: 'Order created successfully'
         });
 
+      
         /*******************
             INVIO EMAIL
         ********************/
+
         console.log(">>> provo a inviare email per ordine", savedOrder.id);
 
         sendOrderEmails(savedOrder)
