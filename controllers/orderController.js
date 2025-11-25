@@ -178,8 +178,6 @@ async function store(req, res) {
             return res.status(400).json({ errors: validation.errors });
         }
 
-
-        // (Opzionale ma consigliato) qui potresti ricalcolare il totale leggendo i prezzi dal DB con gli id delle capsule
         const amount = Number(total_amount).toFixed(2);
 
         let btResult;
@@ -198,7 +196,6 @@ async function store(req, res) {
             console.error("Errore nel checkout Braintree:", error);
             return res.status(500).json({
                 error: "Errore nel checkout"
-
             });
         }
 
@@ -230,17 +227,36 @@ async function store(req, res) {
             ]
         );
 
-        const savedOrder = {
+        // ==========================================================
+        // ✅ NORMALIZZO ITEMS PER EMAIL (snake_case -> camelCase)
+        // così emailService legge lettera e data da ogni item
+        // ==========================================================
+        const normalizedItems = Array.isArray(items)
+            ? items.map(i => ({
+                name: i.name,
+                quantity: i.quantity ?? 1,
+                price: i.price ?? i.unit_price ?? 0,
+                img: i.img,
 
+                // questi due campi servono per stampare UNA lettera per capsula
+                letterContent: i.letterContent ?? i.letter_content ?? null,
+                shippingDate: i.shippingDate ?? i.shipping_period ?? null,
+            }))
+            : [];
+
+        const savedOrder = {
             id: dbResult.insertId,
             customerName: customer_name,
             customerEmail: customer_email,
             shippingAddress: shipping_address,
             billingAddress: billing_address || null,
-            shippingDate: items?.[0]?.shipping_period || null,
-            letterContent: items?.[0]?.letter_content || null,
 
-            items: Array.isArray(items) ? items : []
+            // fallback dal primo item (non è più la fonte principale)
+            shippingDate: normalizedItems?.[0]?.shippingDate || null,
+            letterContent: normalizedItems?.[0]?.letterContent || null,
+
+            // ✅ items puliti che userà la mail
+            items: normalizedItems
         };
 
         // Risposta al FE
@@ -249,7 +265,6 @@ async function store(req, res) {
             message: 'Order created successfully'
         });
 
-        // LOG per capire se parte l'invio
         console.log(">>> provo a inviare email per ordine", savedOrder.id);
 
         // Invio email (non blocca la risposta)

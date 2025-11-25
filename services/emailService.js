@@ -79,9 +79,7 @@ function formatItemsHtml(items = []) {
             <div style="font-size:14px;">
               €${unit.toFixed(2)} 
               <span style="opacity:.7;">x ${qty}</span>
-              <span style="margin-left:8px; font-weight:700;">= €${sub.toFixed(
-                2
-              )}</span>
+              <span style="margin-left:8px; font-weight:700;">= €${sub.toFixed(2)}</span>
             </div>
           </div>
         </div>
@@ -121,6 +119,63 @@ async function sendOrderEmails(order) {
   const total = calcTotal(safeItems);
   const attachments = buildAttachments(safeItems);
 
+  // ==========================================================
+  //  NUOVO: costruisco una capsula per ogni quantità acquistata
+  // ==========================================================
+  const capsules = safeItems.flatMap((i) => {
+    const qty = Number(i.quantity ?? 1);
+
+    // prendo lettera/data dall'item se esistono, altrimenti fallback ai campi ordine
+    const letter = i.letterContent ?? i.letter ?? letterContent ?? "—";
+    const openDate = i.shippingDate ?? i.open_date ?? shippingDate ?? "—";
+
+    return Array.from({ length: qty }, () => ({
+      name: i.name,
+      letter,
+      openDate,
+    }));
+  });
+
+  const capsulesText =
+    capsules.length > 0
+      ? capsules
+          .map(
+            (c, idx) =>
+              `Capsula ${idx + 1}${c.name ? ` (${c.name})` : ""}:
+Data consegna/apertura: ${c.openDate}
+Lettera: ${c.letter}`
+          )
+          .join("\n\n")
+      : `Data consegna/apertura: ${shippingDate || "—"}\nLettera: ${
+          letterContent || "—"
+        }`;
+
+  const capsulesHtml =
+    capsules.length > 0
+      ? capsules
+          .map(
+            (c, idx) => `
+  <div style="background:#f7f7fb;border:1px solid #e6e6f0;padding:12px;border-radius:10px;font-size:14px; margin-top:8px;">
+    <p style="margin:0 0 6px;"><b>Capsula ${idx + 1}${
+              c.name ? ` — ${c.name}` : ""
+            }</b></p>
+    <p style="margin:0 0 6px;"><b>Data consegna/apertura:</b> ${
+      c.openDate
+    }</p>
+    <p style="margin:0;"><b>Lettera:</b> ${c.letter}</p>
+  </div>
+`
+          )
+          .join("")
+      : `
+  <div style="background:#f7f7fb;border:1px solid #e6e6f0;padding:12px;border-radius:10px;font-size:14px;">
+    <p style="margin:0 0 6px;"><b>Data consegna/apertura:</b> ${
+      shippingDate || "—"
+    }</p>
+    <p style="margin:0;"><b>Lettera:</b> ${letterContent || "—"}</p>
+  </div>
+`;
+
   const customerMail = {
     from: process.env.SMTP_USER,
     to: customerEmail,
@@ -139,8 +194,7 @@ Indirizzo di spedizione:
 ${shippingAddress}
 
 Dettagli capsula:
-Data di consegna/apertura: ${shippingDate || "—"}
-Lettera: ${letterContent || "—"}
+${capsulesText}
 
 Riepilogo prodotti:
 ${itemsText}
@@ -191,10 +245,7 @@ Grazie dal team di Chronobox!
               </table>
 
               <h3 style="margin:18px 0 8px;font-size:16px;color:#6b3f2a;">DETTAGLI CAPSULA</h3>
-              <div style="background:#f7f7fb;border:1px solid #e6e6f0;padding:12px;border-radius:10px;font-size:14px;">
-                <p style="margin:0 0 6px;"><b>Data consegna/apertura:</b> ${shippingDate || "—"}</p>
-                <p style="margin:0;"><b>Lettera:</b> ${letterContent || "—"}</p>
-              </div>
+              ${capsulesHtml}
 
               <h3 style="margin:18px 0 8px;font-size:16px;color:#6b3f2a;">RIEPILOGO PRODOTTI</h3>
               <div style="background:#fafafa;border:1px solid #eee;border-radius:12px;padding:10px;">
@@ -225,11 +276,11 @@ Grazie dal team di Chronobox!
     attachments,
   };
 
- const adminMail = {
-  from: process.env.SMTP_USER,
-  to: process.env.ADMIN_EMAIL || "chronobox25@gmail.com",
-  subject: `📦 NUOVO ORDINE RICEVUTO #${id}`,
-  text: `NUOVO ORDINE RICEVUTO 🚀
+  const adminMail = {
+    from: process.env.SMTP_USER,
+    to: process.env.ADMIN_EMAIL || "chronobox25@gmail.com",
+    subject: `📦 NUOVO ORDINE RICEVUTO #${id}`,
+    text: `NUOVO ORDINE RICEVUTO 🚀
 
 Numero ordine: #${id}
 
@@ -244,15 +295,14 @@ SPEDIZIONE:
 ${shippingAddress}
 
 DETTAGLI CAPSULA:
-Data consegna/apertura: ${shippingDate || "—"}
-Lettera: ${letterContent || "—"}
+${capsulesText}
 
 ARTICOLI ACQUISTATI:
 ${itemsText}
 
 TOTALE ORDINE: €${total.toFixed(2)}
 `,
-  html: `
+    html: `
 <div style="margin:0;padding:0;background:#f3f4f6;">
   <table width="100%" cellpadding="0" cellspacing="0" style="padding:20px 0;background:#f3f4f6;font-family:Arial,sans-serif;">
     <tr>
@@ -284,8 +334,7 @@ TOTALE ORDINE: €${total.toFixed(2)}
               <p style="margin:0;font-size:14px;">${shippingAddress}</p>
 
               <h3 style="margin:16px 0 8px;font-size:15px;">Dettagli capsula</h3>
-              <p style="margin:0;font-size:14px;"><b>Data consegna/apertura:</b> ${shippingDate || "—"}</p>
-              <p style="margin:6px 0 0;font-size:14px;"><b>Lettera:</b> ${letterContent || "—"}</p>
+              ${capsulesHtml}
 
               <h3 style="margin:16px 0 8px;font-size:15px;">Articoli acquistati</h3>
               <div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:10px;padding:12px;">
@@ -310,12 +359,8 @@ TOTALE ORDINE: €${total.toFixed(2)}
     </tr>
   </table>
 </div>
-`
-};
-
-
-
-
+`,
+  };
 
   try {
     const r1 = await transporter.sendMail(customerMail);
