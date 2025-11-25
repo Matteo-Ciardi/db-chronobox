@@ -16,7 +16,7 @@ const { validateCapsule } = require("../validations/capsuleValidation");
 async function index(req, res) {
 
     // Estraggo i filtri dalla query string dell'URL
-    const { search, theme, minPrice, maxPrice, order } = req.query;
+    const { search, theme, minPrice, maxPrice, order, onSale } = req.query;
 
     /******************************
         VALIDAZIONI QUERY STRING
@@ -47,6 +47,11 @@ async function index(req, res) {
         return res.status(400).json({ error: "minPrice non può essere maggiore di maxPrice" });
     }
 
+    // onSale deve essere "true" o "false"
+    if (onSale && onSale !== "true" && onSale !== "false") {
+        return res.status(400).json({ error: "Il parametro 'onSale' deve essere 'true' o 'false'" });
+    }
+
     // order deve essere uno tra quelli consentiti
     const validOrders = [
         "price_asc", "price_desc",
@@ -60,7 +65,7 @@ async function index(req, res) {
     }
 
     // Definizione query di base: nessun filtro
-    let query_capsules =  ` 
+    let query_capsules = ` 
         SELECT *
         FROM capsule
     `;
@@ -72,10 +77,14 @@ async function index(req, res) {
           FILTRI DI RICERCA
     -------------------------- */
 
+    if (onSale === "true") {
+        whereConditions.push(`discounted_price IS NOT NULL AND discounted_price <> ''`);
+    }
+
     // Ricerca (parziale) per nome della capsula
     if (search && search.trim() !== "") {
         whereConditions.push(`name LIKE ?`);
-        queryParams.push(`%${search}%`);       
+        queryParams.push(`%${search}%`);
     }
 
     // Ricerca (parziale) per tema
@@ -97,7 +106,7 @@ async function index(req, res) {
     }
 
     // Se ci sono condizioni, aggiungo il WHERE alla query
-    if(whereConditions.length > 0 ) {
+    if (whereConditions.length > 0) {
         query_capsules += " WHERE " + whereConditions.join(" AND ");
     }
 
@@ -161,9 +170,9 @@ async function index(req, res) {
         });
 
         // Restituisco tutte le capsule in formato JSON
-        res.json(capsulesWithFullPathImgs); 
-    } 
-    
+        res.json(capsulesWithFullPathImgs);
+    }
+
     // Gestione errore
     catch (error) {
         res.status(500).json({ error: error.message });
@@ -183,7 +192,8 @@ async function mostPopulars(req, res) {
         FROM capsule
         INNER JOIN capsule_most_popular
             on capsule.id = capsule_most_popular.capsule_id
-        ORDER BY capsule_most_popular.popularity_score DESC;
+        ORDER BY capsule_most_popular.popularity_score DESC
+        LIMIT 10;
     `;
 
     try {
@@ -220,8 +230,9 @@ async function newArrivals(req, res) {
             capsule_new_arrivals.arrival_order
         FROM capsule
         INNER JOIN capsule_new_arrivals
-            on capsule.id = capsule_new_arrivals.capsule_id
-        ORDER BY capsule_new_arrivals.arrival_order DESC;
+            ON capsule.id = capsule_new_arrivals.capsule_id
+        ORDER BY capsule_new_arrivals.arrival_order DESC
+        LIMIT 10;
     `;
 
     try {
@@ -360,9 +371,9 @@ async function store(req, res) {
         if (!validation.valid) {
             return res.status(400).json({ errors: validation.errors });
         }
-        
+
         // Recupero dati dal body della richiesta (tramite destructuring)
-        const { name, img, description, price, discounted_price, dimension, material, weight, capacity, resistance, warrenty, color, theme} = req.body;
+        const { name, img, description, price, discounted_price, dimension, material, weight, capacity, resistance, warrenty, color, theme } = req.body;
 
         // Esecuzione query passando i valori recuperati dal body
         const [result] = await connection.query(
@@ -394,8 +405,8 @@ async function store(req, res) {
                 message: 'Capsule created successfully'
             }
         );
-    } 
-    
+    }
+
     // Gestione errore
     catch (error) {
         res.status(500).json({ error: error.message });
@@ -437,7 +448,7 @@ async function update(req, res) {
         if (result.affectedRows === 0) {
             return res.status(404).json({ error: 'Capsule not found' });
         }
-        
+
         // Definizione query per recuperare lo slug aggiornato da MySQL
         const query_slug =
             ` SELECT slug 
@@ -475,8 +486,8 @@ async function destroy(req, res) {
     const id = parseInt(req.params.id);  // Recupero id dall'URL
 
     // Definizione query per recuperare lo slug (prima di eliminare la capsula)
-    const query_get_slug = 
-    `
+    const query_get_slug =
+        `
         SELECT slug 
         FROM capsule 
         WHERE id = ?
@@ -517,8 +528,8 @@ async function destroy(req, res) {
                 message: 'Capsule deleted successfully'
             }
         );
-    } 
-    
+    }
+
     // Gestione errore
     catch (error) {
         res.status(500).json({ error: error.message });
