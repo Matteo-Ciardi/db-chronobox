@@ -266,14 +266,14 @@ async function store(req, res) {
         // ==========================================================
         const normalizedItems = Array.isArray(items)
   ? items.map((i) => {
-      // prendo la lettera qualsiasi sia il nome nel payload
+      
       const letter =
         i.letter ??
         i.letterContent ??
         i.letter_content ??
         null;
 
-      // prendo la data di spedizione/apertura
+      
       const shippingDate =
         i.shippingDate ??
         i.shipping_period ??
@@ -285,7 +285,7 @@ async function store(req, res) {
         price: i.price ?? i.unit_price ?? 0,
         img: i.img,
 
-        // 👇 ora ogni item ha SIA letter SIA letterContent
+        
         letter,
         letterContent: letter,
         shippingDate,
@@ -293,7 +293,7 @@ async function store(req, res) {
     })
   : [];
 
-        // Preparo oggetto ordine per invio email
+        
         const savedOrder = {
             id: dbResult.insertId,
             customerName: customer_name,
