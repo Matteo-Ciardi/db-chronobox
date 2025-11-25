@@ -187,11 +187,8 @@ I TUOI DATI:
 Nome: ${customerName}
 Email: ${customerEmail}
 
-Indirizzo di fatturazione:
-${billingAddress || "—"}
-
 Indirizzo di spedizione:
-${shippingAddress}
+${billingAddress || "—"}
 
 Dettagli capsula:
 ${capsulesText}
