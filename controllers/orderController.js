@@ -265,17 +265,33 @@ async function store(req, res) {
         // così emailService legge lettera e data da ogni item
         // ==========================================================
         const normalizedItems = Array.isArray(items)
-            ? items.map(i => ({
-                name: i.name,
-                quantity: i.quantity ?? 1,
-                price: i.price ?? i.unit_price ?? 0,
-                img: i.img,
+  ? items.map((i) => {
+      // prendo la lettera qualsiasi sia il nome nel payload
+      const letter =
+        i.letter ??
+        i.letterContent ??
+        i.letter_content ??
+        null;
 
-                // questi due campi servono per stampare UNA lettera per capsula
-                letterContent: i.letterContent ?? i.letter_content ?? null,
-                shippingDate: i.shippingDate ?? i.shipping_period ?? null,
-            }))
-            : [];
+      // prendo la data di spedizione/apertura
+      const shippingDate =
+        i.shippingDate ??
+        i.shipping_period ??
+        null;
+
+      return {
+        name: i.name,
+        quantity: i.quantity ?? 1,
+        price: i.price ?? i.unit_price ?? 0,
+        img: i.img,
+
+        // 👇 ora ogni item ha SIA letter SIA letterContent
+        letter,
+        letterContent: letter,
+        shippingDate,
+      };
+    })
+  : [];
 
         // Preparo oggetto ordine per invio email
         const savedOrder = {
@@ -293,7 +309,7 @@ async function store(req, res) {
             shippingDate: normalizedItems?.[0]?.shippingDate || null,
             letterContent: normalizedItems?.[0]?.letterContent || null,
 
-            // ✅ items puliti che userà la mail
+            // items puliti che userà la mail
             items: normalizedItems
 
         };
