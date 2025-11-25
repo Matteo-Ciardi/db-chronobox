@@ -358,7 +358,7 @@ async function show(req, res) {
 // Store - Crea una nuova capsula
 async function store(req, res) {
 
-    // Definizione query per creare una capsula
+    // Definizione query per inserire una nuova capsula
     const query_store_capsule =
         ` INSERT INTO capsule (name, img, description, price, discounted_price, dimension, material, weight, capacity, resistance, warrenty, color, theme)
           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
@@ -366,8 +366,8 @@ async function store(req, res) {
 
     try {
 
-        // Validazioni dei campi
-        const validation = validateCapsule(req.body);
+        // Validazioni input utente
+        const validation = validateCapsule(req.body, false); // false = modalità STORE (campi obbligatori)
         if (!validation.valid) {
             return res.status(400).json({ errors: validation.errors });
         }
@@ -382,7 +382,7 @@ async function store(req, res) {
         );
 
         // Recupero id capsula creata
-        const idCeatedCapsule = result.insertId;
+        const idCreatedCapsule = result.insertId;
 
         // Definizione query per recuperare lo slug generato da MySQL
         const query_slug =
@@ -392,7 +392,7 @@ async function store(req, res) {
             `;
 
         // Esecuzione query: recupero slug
-        const [slugResult] = await connection.query(query_slug, [idCeatedCapsule]);
+        const [slugResult] = await connection.query(query_slug, [idCreatedCapsule]);
 
         // Recuper slug dalla risposta
         const slugCreatedCapsule = slugResult[0]?.slug;
@@ -400,7 +400,7 @@ async function store(req, res) {
         // Risposta in caso di successo
         res.status(201).json(
             {
-                id: idCeatedCapsule,
+                id: idCreatedCapsule,
                 slug: slugCreatedCapsule,
                 message: 'Capsule created successfully'
             }
@@ -418,8 +418,8 @@ async function store(req, res) {
 // update - Aggiorna una capsula
 async function update(req, res) {
 
-    const id = parseInt(req.params.id); // Recupero id dall'URL
-    const { name, img, description, price, discounted_price, dimension, material, weight, capacity, resistance, warrenty, color, theme } = req.body;  // Recupero dati dal body della richiesta (tramite destructuring)
+    // Recupero id dall'URL
+    const id = parseInt(req.params.id);
 
     // Definizione query per aggiornate una capsula
     const query_update_capsule =
@@ -430,13 +430,14 @@ async function update(req, res) {
 
     try {
 
-        // Validazione dei campi
-        const validation = validateCapsule(req.body);
-
+        // Validazione input utente
+        const validation = validateCapsule(req.body, true);
         if (!validation.valid) {
             return res.status(400).json({ errors: validation.errors });
         }
 
+        // Recupero dati dal body della richiesta (tramite destructuring)
+        const { name, img, description, price, discounted_price, dimension, material, weight, capacity, resistance, warrenty, color, theme } = req.body;  // Recupero dati dal body della richiesta (tramite destructuring)
 
         // Esecuzione query: aggiorna capsula
         const [result] = await connection.query(
@@ -444,7 +445,7 @@ async function update(req, res) {
             [name, img, description, price, discounted_price, dimension, material, weight, capacity, resistance, warrenty, color, theme, id]
         );
 
-        // Controllo: se nessuna riga è stata modificata -> l'ID non esiste
+        // Controllo: se nessuna riga è stata modificata -> ID inesistente
         if (result.affectedRows === 0) {
             return res.status(404).json({ error: 'Capsule not found' });
         }
