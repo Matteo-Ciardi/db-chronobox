@@ -13,9 +13,10 @@ const { validateOrder } = require("../validations/orderValidation");
 
 // --------------------------------------------------- INDEX ----------------------------------------------------
 
-// index - Mostra tutti gli ordini
+// index - Mostra tutti gli ordini con relative capsule, immagini e metodo di pagamento
 async function index(req, res) {
 
+    // Definizione query
     const query_orders =
         ` SELECT
         orders.id AS order_id,
@@ -68,8 +69,11 @@ async function index(req, res) {
     `;
 
     try {
+
+        // Esecuzione query: recupero tutti gli ordini dal db
         const [rows] = await connection.query(query_orders);
 
+        // Aggiungo percorso completo a img, file_path e payment_method_logo
         const ordersWithFullImg = rows.map(order => ({
             ...order,
             img: order.img ? req.imagePath + order.img : null,
@@ -77,8 +81,13 @@ async function index(req, res) {
             payment_method_logo: order.payment_method_logo ? req.imagePath + order.payment_method_logo : null
         }));
 
+        // Restituisco tutti gli ordini in formato JSON
         res.json(ordersWithFullImg);
-    } catch (error) {
+
+    } 
+    
+    // Gestione errori
+    catch (error) {
         res.status(500).json({ error: error.message });
     }
 }
@@ -88,8 +97,10 @@ async function index(req, res) {
 // show - Mostra un ordine specifico
 async function show(req, res) {
 
+    // Recupero id dall'URL
     const id = parseInt(req.params.id);
 
+    // Definizione query
     const query_order = `
     SELECT
         -- ORDINI
@@ -140,14 +151,19 @@ async function show(req, res) {
     WHERE orders.id = ?;`;
 
     try {
+
+        // Esecuzione query: recupero ordine dal db
         const [rows] = await connection.query(query_order, [id]);
 
+        // Nessun ordine trovato
         if (rows.length === 0) {
             return res.status(404).json({ error: 'Order not found' });
         }
 
+        // Recupero ordine
         const order = rows[0];
 
+        // Aggiungo path completo a img, file_path e payment_method_logo
         const orderWithFullPath = {
             ...order,
             img: order.img ? req.imagePath + order.img : null,
@@ -155,9 +171,13 @@ async function show(req, res) {
             payment_method_logo: order.payment_method_logo ? req.imagePath + order.payment_method_logo : null
         };
 
+        // Restituisco l'ordine in formato JSON
         res.json(orderWithFullPath);
 
-    } catch (error) {
+    } 
+    
+    // Gestione errori
+    catch (error) {
         res.status(500).json({ error: error.message });
     }
 }
@@ -169,32 +189,35 @@ async function store(req, res) {
 
     try {
 
-        // Recupero dati dal body della richiesta (tramite destructuring)
-        const { method_id, customer_name, customer_email, shipping_address, billing_address, total_amount, status, items, paymentNonce } = req.body;
-
-        // Validazione dei campi
-        const validation = validateOrder(req.body);
+        // Validazione input utente
+        const validation = validateOrder(req.body, false);   // false = STORE → campi obbligatori
         if (!validation.valid) {
             return res.status(400).json({ errors: validation.errors });
         }
 
+        // Recupero dati dal body della richiesta (tramite destructuring)
+        const { method_id, customer_name, customer_email, shipping_address, billing_address, total_amount, status, items, paymentNonce } = req.body;
 
-        // (Opzionale ma consigliato) qui potresti ricalcolare il totale leggendo i prezzi dal DB con gli id delle capsule
-        const amount = Number(total_amount).toFixed(2);
 
+        /***************************
+            CHECKOUT BRAINTREE
+        ****************************/
+        const amount = Number(total_amount).toFixed(2);         // Formatto l'importo a due cifre decimali
         let btResult;
+
         try {
 
-            // 1) creazione transazione Braintree
+            // Creazione transazione Braintree
             btResult = await gateway.transaction.sale({
                 amount: amount.toString(),
                 paymentMethodNonce: paymentNonce,
-                options: {
-                    submitForSettlement: true,
-                },
+                options: { submitForSettlement: true, },
             });
 
-        } catch (error) {
+        } 
+        
+        // Gestione errori
+        catch (error) {
             console.error("Errore nel checkout Braintree:", error);
             return res.status(500).json({
                 error: "Errore nel checkout"
@@ -202,6 +225,7 @@ async function store(req, res) {
             });
         }
 
+        // Pagamento rifiutato
         if (!btResult.success) {
             console.error("Pagamento Braintree fallito:", btResult);
             return res.status(402).json({
@@ -211,14 +235,20 @@ async function store(req, res) {
             });
         }
 
+        // Pagamento accettato
         const transactionId = btResult.transaction.id;
         console.log("Pagamento Braintree OK, transactionId:", transactionId);
 
-        // Inserisco ordine
-        const [dbResult] = await connection.query(
-            `INSERT INTO orders 
+        // Definizione query
+        const query_store_order = `
+            INSERT INTO orders 
                 (method_id, customer_name, customer_email, shipping_address, billing_address, total_amount, status)
-             VALUES (?, ?, ?, ?, ?, ?, ?)`,
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+        `;
+
+        // Esecuzione query: inserimento ordine
+        const [dbResult] = await connection.query(
+            query_store_order,
             [
                 method_id || null,
                 customer_name,
@@ -230,6 +260,7 @@ async function store(req, res) {
             ]
         );
 
+        // Preparo oggetto ordine per invio email
         const savedOrder = {
 
             id: dbResult.insertId,
@@ -239,20 +270,20 @@ async function store(req, res) {
             billingAddress: billing_address || null,
             shippingDate: items?.[0]?.shipping_period || null,
             letterContent: items?.[0]?.letter_content || null,
-
             items: Array.isArray(items) ? items : []
         };
 
-        // Risposta al FE
+        // Risposta in caso di successo
         res.status(201).json({
             id: savedOrder.id,
             message: 'Order created successfully'
         });
 
-        // LOG per capire se parte l'invio
+        /*******************
+            INVIO EMAIL
+        ********************/
         console.log(">>> provo a inviare email per ordine", savedOrder.id);
 
-        // Invio email (non blocca la risposta)
         sendOrderEmails(savedOrder)
             .then(() => {
                 console.log(">>> email FINITE per ordine", savedOrder.id);
@@ -261,7 +292,10 @@ async function store(req, res) {
                 console.error("Email send failed:", err);
             });
 
-    } catch (error) {
+    } 
+    
+    // Gestione errori
+    catch (error) {
         res.status(500).json({ error: error.message });
     }
 }
@@ -274,20 +308,31 @@ async function update(req, res) {
    
     try {
 
-        // Recupero dati dal body della richiesta (tramite destructuring)
-        const { method_id, customer_name, customer_email, shipping_address, billing_address, total_amount, status } = req.body;
-
-        // Validazione dei campi
-        const validation = validateOrder(req.body);
+        // Validazione input utente
+        const validation = validateOrder(req.body, true);  // true = UPDATE → campi NON obbligatori
         if (!validation.valid) {
             return res.status(400).json({ errors: validation.errors });
         }
 
+        // Recupero dati dal body della richiesta (tramite destructuring)
+        const { method_id, customer_name, customer_email, shipping_address, billing_address, total_amount, status } = req.body;
+
+        // Definizione query
+        const query_update_order = `
+            UPDATE orders
+            SET method_id = ?, 
+                customer_name = ?, 
+                customer_email = ?, 
+                shipping_address = ?, 
+                billing_address = ?, 
+                total_amount = ?, 
+                status = ?
+            WHERE id = ?
+        `;
+
+        // Esecuzione query: aggiorna ordine
         const [result] = await connection.query(
-            `UPDATE orders 
-             SET method_id = ?, customer_name = ?, customer_email = ?, 
-                 shipping_address = ?, billing_address = ?, total_amount = ?, status = ?
-             WHERE id = ?`,
+            query_update_order,
             [
                 method_id || null,
                 customer_name,
@@ -300,12 +345,17 @@ async function update(req, res) {
             ]
         );
 
+        // Nessuna modifica → ID inesistente
         if (result.affectedRows === 0) {
             return res.status(404).json({ error: "Order not found" });
         }
 
+        // Risposta in caso di successo
         res.json({ message: "Order updated successfully" });
-    } catch (error) {
+    } 
+    
+    // Gestione errori
+    catch (error) {
         res.status(500).json({ error: error.message });
     }
 }
@@ -314,8 +364,11 @@ async function update(req, res) {
 
 // destroy - Elimina un ordine
 async function destroy(req, res) {
+
+    // Recupero id dall'URL
     const id = parseInt(req.params.id);
 
+    // Definizione query 
     const query_destroy_order =
         ` DELETE 
           FROM orders
@@ -323,18 +376,25 @@ async function destroy(req, res) {
         `;
 
     try {
+
+        // Esecuzione query: elimino ordine dal database
         const [result] = await connection.query(query_destroy_order, [id]);
 
+        // Controllo: nessuna riga eliminata → ordine inesistente
         if (result.affectedRows === 0) {
             return res.status(404).json({ error: 'Order not found' });
         }
 
+        // Risposta in caso di successo
         res.status(200).json({
             id: id,
             message: 'Order deleted successfully'
         });
 
-    } catch (error) {
+    } 
+    
+    // Gestione errori
+    catch (error) {
         res.status(500).json({ error: error.message });
     }
 }
