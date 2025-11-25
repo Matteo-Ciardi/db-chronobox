@@ -430,8 +430,8 @@ async function update(req, res) {
 
     try {
 
-        // Validazione input utente
-        const validation = validateCapsule(req.body, true);
+        // Validazione input utente 
+        const validation = validateCapsule(req.body, true); // true = UPDATE → campi NON obbligatori
         if (!validation.valid) {
             return res.status(400).json({ errors: validation.errors });
         }
