@@ -279,7 +279,7 @@ Grazie dal team di Chronobox!
 
   // ============================
   // MAIL ADMIN
-  // ============================
+  // =========================
   const adminMail = {
     from: process.env.SMTP_USER,
     to: process.env.ADMIN_EMAIL || "chronobox25@gmail.com",
@@ -377,3 +377,4 @@ TOTALE ORDINE: €${total.toFixed(2)}
 }
 
 module.exports = { sendOrderEmails };
+
