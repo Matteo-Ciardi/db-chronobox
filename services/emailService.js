@@ -277,7 +277,7 @@ Grazie dal team di Chronobox!
     attachments,
   };
 
-  // ============================
+  // =========================
   // MAIL ADMIN
   // =========================
   const adminMail = {
