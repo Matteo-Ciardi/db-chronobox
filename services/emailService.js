@@ -7,7 +7,7 @@ function normalizeImg(img) {
   try {
     const u = new URL(img);
     img = u.pathname;
-  } catch {}
+  } catch { }
 
   img = String(img).trim();
 
@@ -63,17 +63,16 @@ function formatItemsHtml(items = []) {
 
       return `
         <div style="display:flex; gap:14px; padding:12px 0; border-bottom:1px solid #eee; align-items:center;">
-          ${
-            cid
-              ? `
+          ${cid
+          ? `
             <img 
               src="${cid}" 
               alt="${i.name}" 
               style="width:90px; height:90px; object-fit:cover; border-radius:10px; border:1px solid #ddd;"
             />
           `
-              : ""
-          }
+          : ""
+        }
           <div>
             <div style="font-weight:700; font-size:15px; margin-bottom:4px;">${i.name}</div>
             <div style="font-size:14px;">
@@ -88,7 +87,7 @@ function formatItemsHtml(items = []) {
     .join("");
 }
 
-function calcTotal(items = []) {
+function calcItemsTotal(items = []) {
   if (!Array.isArray(items)) return 0;
   return items.reduce((sum, i) => {
     const qty = Number(i.quantity ?? 1);
@@ -116,18 +115,22 @@ async function sendOrderEmails(order) {
 
   const itemsText = formatItemsText(safeItems);
   const itemsHtml = formatItemsHtml(safeItems);
-  const total = calcTotal(safeItems);
+  const itemsTotal = calcItemsTotal(safeItems);
   const attachments = buildAttachments(safeItems);
 
   // ===========================
   // Spedizione: 30€ fino a 169€
   //            gratis da 170€ in su
+  // (la soglia è sul totale PRODOTTI)
   // ===========================
-  const shippingCost = total > 169 ? 0 : 30;
+  const shippingCost = itemsTotal > 169 ? 0 : 30;
   const shippingLabel =
     shippingCost === 0
       ? "Spedizione gratis"
       : `Spedizione: €${shippingCost.toFixed(2)}`;
+
+  // Totale visualizzato in email = prodotti + spedizione
+  const grandTotal = itemsTotal + shippingCost;
 
   // ==========================================================
   //  Costruisco una capsula per ogni quantità acquistata
@@ -149,39 +152,35 @@ async function sendOrderEmails(order) {
   const capsulesText =
     capsules.length > 0
       ? capsules
-          .map(
-            (c, idx) =>
-              `Capsula ${idx + 1}${c.name ? ` (${c.name})` : ""}:
+        .map(
+          (c, idx) =>
+            `Capsula ${idx + 1}${c.name ? ` (${c.name})` : ""}:
 Data consegna/apertura: ${c.openDate}
 Lettera: ${c.letter}`
-          )
-          .join("\n\n")
-      : `Data consegna/apertura: ${shippingDate || "—"}\nLettera: ${
-          letterContent || "—"
-        }`;
+        )
+        .join("\n\n")
+      : `Data consegna/apertura: ${shippingDate || "—"}\nLettera: ${letterContent || "—"
+      }`;
 
   const capsulesHtml =
     capsules.length > 0
       ? capsules
-          .map(
-            (c, idx) => `
+        .map(
+          (c, idx) => `
   <div style="background:#f7f7fb;border:1px solid #e6e6f0;padding:12px;border-radius:10px;font-size:14px; margin-top:8px;">
-    <p style="margin:0 0 6px;"><b>Capsula ${idx + 1}${
-              c.name ? ` — ${c.name}` : ""
+    <p style="margin:0 0 6px;"><b>Capsula ${idx + 1}${c.name ? ` — ${c.name}` : ""
             }</b></p>
-    <p style="margin:0 0 6px;"><b>Data consegna/apertura:</b> ${
-      c.openDate
-    }</p>
+    <p style="margin:0 0 6px;"><b>Data consegna/apertura:</b> ${c.openDate
+            }</p>
     <p style="margin:0;"><b>Lettera:</b> ${c.letter}</p>
   </div>
 `
-          )
-          .join("")
+        )
+        .join("")
       : `
   <div style="background:#f7f7fb;border:1px solid #e6e6f0;padding:12px;border-radius:10px;font-size:14px;">
-    <p style="margin:0 0 6px;"><b>Data consegna/apertura:</b> ${
-      shippingDate || "—"
-    }</p>
+    <p style="margin:0 0 6px;"><b>Data consegna/apertura:</b> ${shippingDate || "—"
+      }</p>
     <p style="margin:0;"><b>Lettera:</b> ${letterContent || "—"}</p>
   </div>
 `;
@@ -207,7 +206,7 @@ Riepilogo prodotti:
 ${itemsText}
 
 ${shippingLabel}
-Totale ordine: €${total.toFixed(2)}
+Totale ordine: €${grandTotal.toFixed(2)}
 
 Grazie dal team di Chronobox!
 `,
@@ -255,9 +254,9 @@ Grazie dal team di Chronobox!
               <div style="margin-top:16px;background:#6b3f2a;color:#fff;padding:12px 14px;border-radius:10px;text-align:center;">
                 <span style="font-size:14px;opacity:0.9;">${shippingLabel}</span><br/>
                 <span style="font-size:15px;opacity:0.9;">Totale ordine</span><br/>
-                <span style="font-size:20px;font-weight:700;">€${total.toFixed(
-                  2
-                )}</span>
+                <span style="font-size:20px;font-weight:700;">€${grandTotal.toFixed(
+      2
+    )}</span>
               </div>
 
               <p style="margin-top:18px;font-size:15px;">Grazie dal team di Chronobox!</p>
@@ -277,9 +276,9 @@ Grazie dal team di Chronobox!
     attachments,
   };
 
-  // =========================
+  // ============================
   // MAIL ADMIN
-  // =========================
+  // ============================
   const adminMail = {
     from: process.env.SMTP_USER,
     to: process.env.ADMIN_EMAIL || "chronobox25@gmail.com",
@@ -302,7 +301,7 @@ ARTICOLI ACQUISTATI:
 ${itemsText}
 
 ${shippingLabel.toUpperCase()}
-TOTALE ORDINE: €${total.toFixed(2)}
+TOTALE ORDINE: €${grandTotal.toFixed(2)}
 `,
     html: `
 <div style="margin:0;padding:0;background:#f3f4f6;">
@@ -342,7 +341,7 @@ TOTALE ORDINE: €${total.toFixed(2)}
 
               <div style="margin-top:16px;background:#111827;color:#fff;padding:12px;border-radius:10px;text-align:center;">
                 <div style="font-size:14px;margin-bottom:4px;">${shippingLabel}</div>
-                <b style="font-size:16px;">Totale ordine: €${total.toFixed(2)}</b>
+                <b style="font-size:16px;">Totale ordine: €${grandTotal.toFixed(2)}</b>
               </div>
 
             </td>
@@ -377,4 +376,3 @@ TOTALE ORDINE: €${total.toFixed(2)}
 }
 
 module.exports = { sendOrderEmails };
-
