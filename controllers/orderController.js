@@ -299,17 +299,14 @@ async function store(req, res) {
             customerName: customer_name,
             customerEmail: customer_email,
             shippingAddress: shipping_address,
-            billingAddress: billing_address || null,
+            billingAddress: billing_address,
           
-            // shippingDate: items?.[0]?.shipping_period || null,
-            // letterContent: items?.[0]?.letter_content || null,
-            // items: Array.isArray(items) ? items : []
-
-            // fallback dal primo item (non è più la fonte principale)
+            // fallback dal primo item 
             shippingDate: normalizedItems?.[0]?.shippingDate || null,
             letterContent: normalizedItems?.[0]?.letterContent || null,
 
-            // items puliti che userà la mail
+
+            // items che userà la mail
             items: normalizedItems
 
         };

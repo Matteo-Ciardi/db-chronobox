@@ -12,14 +12,11 @@ Tutte le risorse del progetto includono le operazioni standard CRUD (creazione, 
 - **/api/capsules**  
   Gestisce le capsule preimpostate disponibili nel sito e le relative capsule correlate.
 
-- **/api/themes**  
-  Gestisce i temi collegati alle capsule.
+- **/api/orders**  
+Gestisce gli ordini effettuati dagli utenti.
 
 - **/api/payment-methods**  
   Gestisce i metodi di pagamento disponibili sul sito.
-
-- **/api/orders**  
-  Gestisce gli ordini effettuati dagli utenti.
 
 ---
 
@@ -40,7 +37,7 @@ Le capsule sono **preimpostate**, quindi non è prevista alcuna personalizzazion
 
 Lo schema E-R utilizzato dal backend è il seguente:
 
-![Schema ER](./data/Schema-ER.png)
+![Schema ER](./data/schema_E-R.png)
 
 
 ## Frontend del progetto
@@ -50,15 +47,11 @@ https://github.com/Matteo-Ciardi/fe-chronobox.git
 
 <h2 align="center">  Chronobox – Documentazione API </h2>
 
-## Crud - Capsules
-https://documenter.getpostman.com/view/48540573/2sB3WwrxkH
+## Documentazione API Capusles
+https://documenter.getpostman.com/view/48540573/2sB3dJyXhW
 
-## Crud - Capsule New Arrivals
-https://documenter.getpostman.com/view/48540573/2sB3Wwrxpf
+## Documentazione API Orders
+https://documenter.getpostman.com/view/48540573/2sB3dJyXmq
 
-## Crud - Capsules Most Popular
-
-## Crud - Orders
-
-## Crud - Payment Methods
-https://documenter.getpostman.com/view/48540573/2sB3Wwrxu9
+## Documentazione API Payment Methods
+https://documenter.getpostman.com/view/48540573/2sB3dJyXms
