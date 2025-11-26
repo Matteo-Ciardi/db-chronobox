@@ -259,7 +259,7 @@ Orders Endpoints:
 
    1. GET all orders (senza filtri)
       Method: GET
-      URL:  http://localhost:3000/api/capsules
+      URL:  http://localhost:3000/api/checkout/orders
       Headers: None
       Body: None
 
@@ -269,7 +269,7 @@ Orders Endpoints:
    ------------- */
    5. GET order by id
       Method: GET
-      URL:  http://localhost:3000/api/capsules/capsula-premium-blu
+      URL:  http://localhost:3000/api/checkout/orders/6
       Headers: None
       Body: None
 
@@ -300,114 +300,240 @@ Orders Endpoints:
 
       // Validazioni:
 
-      1. Estensione immagine
+      1. Limiti numerici
       Method: POST
       URL: http://localhost:3000/api/capsules
       Headers: Content-Type: application/json
       Body (raw JSON):
       {
-        "name": "Nuova Capsula Mini Verde",
-        "slug": "capsula-mini-verde",
-        "img": "immagine.txt",
-        "description": "La Capsula Mini è il modo più pratico e moderno per creare un ricordo senza tempo — compatta, elegante e pronta a custodire la tua storia fino al giorno in cui sceglierai di riscoprirla.",
-        "price": 19.9,
-        "discounted_price": null,
-        "dimension": "5x5x5 cm",
-        "material": "Plastica",
-        "weight": 50,
-        "capacity": 50,
-        "resistance": "Alta",
-        "warrenty": 1,
-        "color": "Verde",
-        "theme": "Mini"
-    }
+            "method_id": 1,
+            "customer_name": "Damiana Arangio",
+            "customer_email": "damiana@example.com",
+            "billing_address": "Via Roma 10, 94013 Leonforte (EN)",
+            "total_amount": 0,
+            "status": "pending",
+            "paymentNonce": "fake-valid-nonce",
+            "items": [
+            {
+                  "capsule_id": 1,
+                  "quantity": 1,
+                  "unit_price": 59.90,
+                  "shipping_period": "2025-12-31",
+                  "letter_content": "Ciao da Chronobox",
+                  "discount_percentage": 0
+            }]
+      }
 
     
-      2. Validazioni numeriche
-            Method: POST
+      2. Validazioni stringhe
+       Method: POST
       URL: http://localhost:3000/api/capsules
       Headers: Content-Type: application/json
       Body (raw JSON):
       {
-        "name": "Nuova Capsula Mini Verde",
-        "slug": "capsula-mini-verde",
-        "img": "http://localhost:3000/imgs/capsules/capsule-mini-verde.jpg",
-        "description": "La Capsula Mini è il modo più pratico e moderno per creare un ricordo senza tempo — compatta, elegante e pronta a custodire la tua storia fino al giorno in cui sceglierai di riscoprirla.",
-        "price": "a",
-        "discounted_price": "a",
-        "dimension": "5x5x5 cm",
-        "material": "Plastica",
-        "weight": "a",
-        "capacity": "a",
-        "resistance": "Alta",
-        "warrenty": "a",
-        "color": "Verde",
-        "theme": "Mini"
-    }
+            "customer_name": "a",
+            "customer_email": "damiana@example.com",
+            "shipping_address": "a",
+            "billing_address": "a",
+            "total_amount": 59.9,
+            "status": "pending",
+            "paymentNonce": "fake-valid-nonce",
+            "items": [
+            {
+                  "capsule_id": 1,
+                  "quantity": 1,
+                  "unit_price": 59.90,
+                  "shipping_period": "2025-12-31",
+                  "letter_content": "Ciao da Chronobox",
+                  "discount_percentage": 0
+            }]
+      }
 
-      3. Validazioni limiti numerici
+      3. Validazioni formato email
       Method: POST
       URL: http://localhost:3000/api/capsules
       Headers: Content-Type: application/json
       Body (raw JSON):
       {
-        "name": "Nuova Capsula Mini Verde",
-        "slug": "capsula-mini-verde",
-        "img": "http://localhost:3000/imgs/capsules/capsule-mini-verde.jpg",
-        "description": "La Capsula Mini è il modo più pratico e moderno per creare un ricordo senza tempo — compatta, elegante e pronta a custodire la tua storia fino al giorno in cui sceglierai di riscoprirla.",
-        "price": -5,
-        "discounted_price": 20,
-        "dimension": "5x5x5 cm",
-        "material": "Plastica",
-        "weight": 0,
-        "capacity": -2,
-        "resistance": "Alta",
-        "warrenty": -1,
-        "color": "Verde",
-        "theme": "Mini"
-    }
+            "method_id": 1,
+            "customer_name": "Damiana Arangio",
+            "customer_email": "damiana@example",
+            "billing_address": "Via Roma 10, 94013 Leonforte (EN)",
+            "total_amount": 59.90,
+            "status": "pending",
+            "paymentNonce": "fake-valid-nonce",
+            "items": [
+            {
+                  "capsule_id": 1,
+                  "quantity": 1,
+                  "unit_price": 59.90,
+                  "shipping_period": "2025-12-31",
+                  "letter_content": "Ciao da Chronobox",
+                  "discount_percentage": 0
+            }]
+      }
 
-      4. Validazioni stringhe
+      4. Elementi ordine
       Method: POST
       URL: http://localhost:3000/api/capsules
       Headers: Content-Type: application/json
       Body (raw JSON):
       {
-        "name": 1,
-        "slug": "capsula-mini-verde",
-        "img": "http://localhost:3000/imgs/capsules/capsule-mini-verde.jpg",
-        "description": "a",
-        "price": 19.9,
-        "discounted_price": null,
-        "dimension": "5x5x5 cm",
-        "material": "b",
-        "weight": 50,
-        "capacity": 50,
-        "resistance": "Alta",
-        "warrenty": 1,
-        "color": 2,
-        "theme": "Mini"
+            "method_id": 1,
+            "customer_name": "Damiana Arangio",
+            "customer_email": "damiana@example.com",
+            "billing_address": "Via Roma 10, 94013 Leonforte (EN)",
+            "total_amount": 59.90,
+            "status": "pending",
+            "paymentNonce": "fake-valid-nonce",
+            "items": [
+            {
+                  "capsule_id": 1,
+                  "quantity": 0,
+                  "unit_price": 0,
+                  "shipping_period": "2025-12-31",
+                  "letter_content": "Ciao da Chronobox",
+                  "discount_percentage": "prova"
+            }]
       }
    
    /* ------------
          UPDATE
    --------------- */
-   7. UPDATE capsule
+   7. UPDATE orders
       Method: PUT
       URL: http://localhost:3000/api/capsules/50
       Headers: Content-Type: application/json
       Body (raw JSON):
       {
-        "color": "blu"
+      "method_id": 1,
+      "customer_name": "Damiana Arangio Aggiornata",
+      "customer_email": "damianaaggiornata@example.com",
+      "billing_address": "Via Roma 10, 94013 Leonforte (EN)",
+      "total_amount": 59.90,
+      "status": "pending"
       }
+
 
             
    /* --------------
          DESTROY
    ----------------- */
-   8. DELETE capsule
+   8. DELETE order
       Method: DELETE
-      URL: http://localhost:3000/api/capsules/50
+      URL: http://localhost:3000/api/checkout/orders/1
       Headers: None
       Body: None
+
 -----------------------------------------------  PAYMENT METHOD  -------------------------------------------------------
+
+Payment Method Endpoints:
+
+   /* ------------
+         INDEX
+    -------------- */
+
+   1. GET all payment methods
+      Method: GET
+      URL:  http://localhost:3000/api/checkout/payment-methods
+      Headers: None
+      Body: None
+
+
+   /* -----------
+        SHOW
+   ------------- */
+   5. GET payment method by id
+      Method: GET
+      URL:  http://localhost:3000/api/checkout/payment-methods/1
+      Headers: None
+      Body: None
+
+    /* -----------
+        STORE
+   ------------- */
+   6. STORE new payment method
+      Method: POST
+      URL: http://localhost:3000/api/checkout/payment-methods
+      Headers: Content-Type: application/json
+      Body (raw JSON):
+      {
+            "name": "Visa",
+            "provider": "Visa Inc.",
+            "type": "card",
+            "logo_url": "visa.png",
+            "description": "Metodo di pagamento tramite carta Visa",
+            "active": 1
+      }
+
+      // Validazioni:
+
+      1. Validazioni stringhe
+      Method: POST
+      URL: http://localhost:3000/api/capsules
+      Headers: Content-Type: application/json
+      Body (raw JSON):
+     {
+            "name": "a",
+            "provider": "a",
+            "type": "card",
+            "logo_url": "visa.txt",
+            "description": "Metodo di pagamento tramite carta Visa",
+            "active": 1
+      }
+    
+      2. Validazioni numeriche
+       Method: POST
+      URL: http://localhost:3000/api/capsules
+      Headers: Content-Type: application/json
+      Body (raw JSON):
+     {
+            "name": "a",
+            "provider": "a",
+            "type": "card",
+            "logo_url": "visa.txt",
+            "description": "Metodo di pagamento tramite carta Visa",
+            "active": 1
+      }
+
+      3. Validazioni campo type
+      Method: POST
+      URL: http://localhost:3000/api/capsules
+      Headers: Content-Type: application/json
+      {
+            "name": "Visa",
+            "provider": "Visa Inc.",
+            "type": "prova",
+            "logo_url": "visa.png",
+            "description": "Metodo di pagamento tramite carta Visa",
+            "active": 1
+      }
+
+   
+   /* ------------
+         UPDATE
+   --------------- */
+   7. UPDATE payment method
+      Method: PUT
+      URL: http://localhost:3000/api/capsules/50
+      Headers: Content-Type: application/json
+      Body (raw JSON):
+      {
+      "method_id": 1,
+      "customer_name": "Damiana Arangio Aggiornata",
+      "customer_email": "damianaaggiornata@example.com",
+      "billing_address": "Via Roma 10, 94013 Leonforte (EN)",
+      "total_amount": 59.90,
+      "status": "pending"
+      }
+
+
+            
+   /* --------------
+         DESTROY
+   ----------------- */
+   8. DELETE payment method
+      Method: DELETE
+      URL: http://localhost:3000/api/checkout/orders/1
+      Headers: None
+      Body: None

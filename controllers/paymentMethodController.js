@@ -43,6 +43,13 @@ async function show(req, res) {
     // Recupero id dall'URL
     const id = parseInt(req.params.id);
 
+    // Definizione query
+    const query_show_payment = `
+        SELECT *
+        FROM payment_method
+        WHERE id = ?
+    `;
+
     try {
 
         // Esecuzione query: recupero metodo di pagamento

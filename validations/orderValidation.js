@@ -101,17 +101,16 @@ function validateOrder(data, isUpdate = false) {
                 errors.push(prefix + "Il prezzo unitario non può essere negativo");
             }
 
-            // billing_address
-            if (!isEmpty(item.billing_address)) {
+            // shipping_period
+            if (!isEmpty(item.shipping_period)) {
                 const date = new Date(item.shipping_period);
                 if (isNaN(date.getTime())) {
-                    errors.push(prefix + "Il campo 'billing_address' deve essere una data valida");
+                    errors.push(prefix + "Il campo 'shipping_period' deve essere una data valida");
                 }
             }
-
             // Letter
-            if (!isEmpty(item.letter_content) && item.letter_content.length > 500) {
-                errors.push(prefix + "La lettera non può superare i 500 caratteri");
+            if (!isEmpty(item.letter_content) && item.letter_content.length > 3000) {
+                errors.push(prefix + "La lettera non può superare i 3000 caratteri");
             }
 
             // Sconto
