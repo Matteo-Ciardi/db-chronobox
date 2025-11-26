@@ -187,11 +187,7 @@ I TUOI DATI:
 Nome: ${customerName}
 Email: ${customerEmail}
 
-Indirizzo di fatturazione:
-${billingAddress || "—"}
 
-Indirizzo di spedizione:
-${shippingAddress}
 
 Dettagli capsula:
 ${capsulesText}
@@ -235,12 +231,11 @@ Grazie dal team di Chronobox!
                   <td style="padding:6px 0;">${customerEmail}</td>
                 </tr>
                 <tr>
-                  <td style="padding:6px 0;vertical-align:top;"><b>Indirizzo fatturazione</b></td>
+                  <td style="padding:6px 0;vertical-align:top;"><b>Indirizzo spedizione</b></td>
                   <td style="padding:6px 0;">${billingAddress || "—"}</td>
                 </tr>
                 <tr>
-                  <td style="padding:6px 0;vertical-align:top;"><b>Indirizzo spedizione</b></td>
-                  <td style="padding:6px 0;">${shippingAddress}</td>
+                 
                 </tr>
               </table>
 
@@ -288,11 +283,10 @@ CLIENTE:
 Nome: ${customerName}
 Email: ${customerEmail}
 
-FATTURAZIONE:
+Indirizzo di spedizione:
 ${billingAddress || "—"}
 
-SPEDIZIONE:
-${shippingAddress}
+
 
 DETTAGLI CAPSULA:
 ${capsulesText}
@@ -327,11 +321,10 @@ TOTALE ORDINE: €${total.toFixed(2)}
               <p style="margin:0;font-size:14px;"><b>Nome:</b> ${customerName}</p>
               <p style="margin:6px 0 0;font-size:14px;"><b>Email:</b> ${customerEmail}</p>
 
-              <h3 style="margin:16px 0 8px;font-size:15px;">Fatturazione</h3>
+              <h3 style="margin:16px 0 8px;font-size:15px;">Indirizzo di spedizione</h3>
               <p style="margin:0;font-size:14px;">${billingAddress || "—"}</p>
 
-              <h3 style="margin:16px 0 8px;font-size:15px;">Spedizione</h3>
-              <p style="margin:0;font-size:14px;">${shippingAddress}</p>
+              
 
               <h3 style="margin:16px 0 8px;font-size:15px;">Dettagli capsula</h3>
               ${capsulesHtml}
