@@ -119,24 +119,18 @@ async function sendOrderEmails(order) {
   const total = calcTotal(safeItems);
   const attachments = buildAttachments(safeItems);
 
-
-
-
-
-    // ===========================
-  // SPEDIZIONE: 30€ sotto 170€
-  //           gratis da 170€ in su
   // ===========================
-  // Spedizione: 30€ sotto i 170, gratis da 170 in su
-const shippingCost = total >= 170 ? 0 : 30;
-const shippingLabel = shippingCost === 0 ? "gratis" : `€${shippingCost.toFixed(2)}`;
-
-
-
-
+  // Spedizione: 30€ fino a 169€
+  //            gratis da 170€ in su
+  // ===========================
+  const shippingCost = total > 169 ? 0 : 30;
+  const shippingLabel =
+    shippingCost === 0
+      ? "Spedizione gratis"
+      : `Spedizione: €${shippingCost.toFixed(2)}`;
 
   // ==========================================================
-  //  NUOVO: costruisco una capsula per ogni quantità acquistata
+  //  Costruisco una capsula per ogni quantità acquistata
   // ==========================================================
   const capsules = safeItems.flatMap((i) => {
     const qty = Number(i.quantity ?? 1);
@@ -192,6 +186,9 @@ Lettera: ${c.letter}`
   </div>
 `;
 
+  // ============================
+  // MAIL CLIENTE
+  // ============================
   const customerMail = {
     from: process.env.SMTP_USER,
     to: customerEmail,
@@ -203,18 +200,14 @@ I TUOI DATI:
 Nome: ${customerName}
 Email: ${customerEmail}
 
-
-
 Dettagli capsula:
 ${capsulesText}
 
 Riepilogo prodotti:
 ${itemsText}
 
-Spedizione: ${shippingLabel}
+${shippingLabel}
 Totale ordine: €${total.toFixed(2)}
-
-
 
 Grazie dal team di Chronobox!
 `,
@@ -249,13 +242,6 @@ Grazie dal team di Chronobox!
                   <td style="padding:6px 0;"><b>Email</b></td>
                   <td style="padding:6px 0;">${customerEmail}</td>
                 </tr>
-                <tr>
-                  <td style="padding:6px 0;vertical-align:top;"><b>Indirizzo spedizione</b></td>
-                  <td style="padding:6px 0;">${billingAddress || "—"}</td>
-                </tr>
-                <tr>
-                 
-                </tr>
               </table>
 
               <h3 style="margin:18px 0 8px;font-size:16px;color:#6b3f2a;">DETTAGLI CAPSULA</h3>
@@ -267,6 +253,7 @@ Grazie dal team di Chronobox!
               </div>
 
               <div style="margin-top:16px;background:#6b3f2a;color:#fff;padding:12px 14px;border-radius:10px;text-align:center;">
+                <span style="font-size:14px;opacity:0.9;">${shippingLabel}</span><br/>
                 <span style="font-size:15px;opacity:0.9;">Totale ordine</span><br/>
                 <span style="font-size:20px;font-weight:700;">€${total.toFixed(
                   2
@@ -290,6 +277,9 @@ Grazie dal team di Chronobox!
     attachments,
   };
 
+  // ============================
+  // MAIL ADMIN
+  // ============================
   const adminMail = {
     from: process.env.SMTP_USER,
     to: process.env.ADMIN_EMAIL || "chronobox25@gmail.com",
@@ -305,15 +295,13 @@ Email: ${customerEmail}
 Indirizzo di spedizione:
 ${billingAddress || "—"}
 
-
-
 DETTAGLI CAPSULA:
 ${capsulesText}
 
 ARTICOLI ACQUISTATI:
 ${itemsText}
 
-SPEDIZIONE: ${shippingLabel}
+${shippingLabel.toUpperCase()}
 TOTALE ORDINE: €${total.toFixed(2)}
 `,
     html: `
@@ -344,8 +332,6 @@ TOTALE ORDINE: €${total.toFixed(2)}
               <h3 style="margin:16px 0 8px;font-size:15px;">Indirizzo di spedizione</h3>
               <p style="margin:0;font-size:14px;">${billingAddress || "—"}</p>
 
-              
-
               <h3 style="margin:16px 0 8px;font-size:15px;">Dettagli capsula</h3>
               ${capsulesHtml}
 
@@ -355,6 +341,7 @@ TOTALE ORDINE: €${total.toFixed(2)}
               </div>
 
               <div style="margin-top:16px;background:#111827;color:#fff;padding:12px;border-radius:10px;text-align:center;">
+                <div style="font-size:14px;margin-bottom:4px;">${shippingLabel}</div>
                 <b style="font-size:16px;">Totale ordine: €${total.toFixed(2)}</b>
               </div>
 
