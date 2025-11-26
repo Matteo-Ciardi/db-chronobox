@@ -119,6 +119,22 @@ async function sendOrderEmails(order) {
   const total = calcTotal(safeItems);
   const attachments = buildAttachments(safeItems);
 
+
+
+
+
+    // ===========================
+  // SPEDIZIONE: 30€ sotto 170€
+  //           gratis da 170€ in su
+  // ===========================
+  // Spedizione: 30€ sotto i 170, gratis da 170 in su
+const shippingCost = total >= 170 ? 0 : 30;
+const shippingLabel = shippingCost === 0 ? "gratis" : `€${shippingCost.toFixed(2)}`;
+
+
+
+
+
   // ==========================================================
   //  NUOVO: costruisco una capsula per ogni quantità acquistata
   // ==========================================================
@@ -195,7 +211,10 @@ ${capsulesText}
 Riepilogo prodotti:
 ${itemsText}
 
+Spedizione: ${shippingLabel}
 Totale ordine: €${total.toFixed(2)}
+
+
 
 Grazie dal team di Chronobox!
 `,
@@ -294,6 +313,7 @@ ${capsulesText}
 ARTICOLI ACQUISTATI:
 ${itemsText}
 
+SPEDIZIONE: ${shippingLabel}
 TOTALE ORDINE: €${total.toFixed(2)}
 `,
     html: `
